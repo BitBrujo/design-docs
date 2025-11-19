@@ -1,0 +1,6160 @@
+# Figma Design System to LLM Integration Guide
+
+A comprehensive guide for building, structuring, and exporting Figma design systems to LLMs using MCP and other approaches.
+
+---
+
+## Table of Contents
+
+1. [Phase 1: Visual Design Foundation](#phase-1-visual-design-foundation)
+   - Step 1.1: Audit and Inventory
+   - Step 1.2: Visual Design Primitives
+   - Step 1.3: AI-Augmented Design System Generation
+2. [Phase 2: Design Tokens & Variables](#phase-2-design-tokens--variables)
+   - Step 2.1-2.5: Variable Collections and Organization
+   - Step 2.6: AI-Augmented Variable Creation & Naming
+3. [Phase 3: Component Architecture](#phase-3-component-architecture)
+4. [Phase 4: Export Strategy](#phase-4-export-strategy)
+5. [Phase 5: LLM Integration via MCP](#phase-5-llm-integration-via-mcp)
+6. [Phase 6: CSS Global System](#phase-6-css-global-system)
+7. [Prompt Engineering for LLM Structuring](#prompt-engineering-for-llm-structuring)
+8. [Advanced Features Integration](#advanced-features-integration)
+9. [Best Practices & Tips](#phase-9-best-practices--tips)
+10. [Troubleshooting & Common Issues](#phase-10-troubleshooting--common-issues)
+11. [Starting with shadcn/ui and Making It Your Own](#phase-11-starting-with-shadcnui-and-making-it-your-own)
+12. [Quick Reference Checklist](#quick-reference-checklist)
+9. [AI-Augmented Design System Building](#ai-augmented-design-system-building)
+10. [Starting with shadcn/ui and Customizing](#starting-with-shadcnui-and-customizing)
+
+---
+
+## Phase 1: Visual Design Foundation
+
+### Step 1.1: Audit and Inventory
+**Goal:** Understand what you're designing for before you build anything
+
+**Why this matters:** Think of this like taking inventory before organizing a kitchen. You need to know what pots, pans, and ingredients you have before deciding how to arrange your cabinets. Similarly, you need to understand your design landscape before building a system.
+
+#### What to Document:
+
+**1. Platforms (Where will your designs live?)**
+```
+Examples:
+✓ Web (desktop browser)
+✓ Web (mobile browser)  
+✓ iOS native app
+✓ Android native app
+✓ Desktop application (Mac/Windows)
+✓ Email templates
+✓ Marketing landing pages
+```
+
+**Why it matters:** Each platform has different constraints:
+- Web: Must work in different browsers, responsive sizing
+- iOS: Follows Apple's Human Interface Guidelines, specific touch targets
+- Android: Follows Material Design principles, different screen densities
+- Email: Very limited CSS support, must work in Outlook
+
+**Quick tip:** Open your product on different devices and screenshot what looks different. These differences will inform your system.
+
+---
+
+**2. Product Surfaces (Different areas of your product)**
+```
+Examples:
+✓ Marketing website (public-facing)
+✓ Main application (logged-in users)
+✓ Admin dashboard (internal tools)
+✓ Mobile app
+✓ Documentation site
+✓ Email notifications
+```
+
+**Why it matters:** Different surfaces often need different visual weights:
+- Marketing sites are usually more colorful and bold
+- Applications are more subdued and functional
+- Admin tools prioritize information density
+
+**Quick tip:** Make a simple list. Walk through your product and write down every distinct "area" or "section" that feels different.
+
+---
+
+**3. Brand Requirements (Visual identity consistency)**
+
+**Single Brand Example:**
+```
+Company: Acme Corp
+Products: All use same blue, same logo, same fonts
+Need: 1 cohesive design system
+```
+
+**Quick tip:** Document your existing brand guidelines (logo colors, fonts, etc.) before starting. This will inform your color and typography decisions.
+
+---
+
+**4. Catalog Existing Patterns (What do you already have?)**
+
+**How to do this as a beginner:**
+
+a) **Take screenshots of every unique element:**
+   - Every button style you see
+   - Every form input
+   - Every card or container
+   - Every color used
+   - Every font size
+
+b) **Group similar items:**
+   ```
+   Buttons I found:
+   - Blue button with white text (appears 47 times)
+   - White button with blue text (appears 23 times)
+   - Red button with white text (appears 8 times)
+   - Green button with white text (appears 12 times)
+   - Link that looks like button (appears 34 times)
+   ```
+
+c) **Count inconsistencies:**
+   ```
+   Button corner roundness:
+   - Completely square corners (0px radius) - 15 instances
+   - Slightly rounded (4px) - 32 instances
+   - Medium rounded (8px) - 41 instances
+   - Very rounded (12px) - 8 instances
+   
+   Problem: We have 4 different button roundness levels!
+   Solution: Design system will standardize to 1 or 2 options
+   ```
+
+**Quick tip:** Use a tool like Figma's "Inspect" feature or a browser inspector to see exact values. Write them all down - even if they seem chaotic.
+
+---
+
+**5. Accessibility Requirements (Who needs to use your product?)**
+
+**What is WCAG?** 
+Web Content Accessibility Guidelines - basically rules to make sure everyone can use your product, including people with:
+- Vision impairments (low vision, color blindness, blindness)
+- Hearing impairments
+- Motor impairments (difficulty using a mouse)
+- Cognitive impairments
+
+**Levels Explained:**
+- **Level A:** Bare minimum (you must do this)
+- **Level AA:** Standard for most businesses (recommended)
+- **Level AAA:** Highest standard (nice to have)
+
+**Common Requirements You'll Deal With:**
+
+1. **Color Contrast:**
+   ```
+   Bad:  Light gray text (#999) on white background
+   Good: Dark gray text (#333) on white background
+   
+   Rule: Text must have 4.5:1 contrast ratio
+   Tool: Use WebAIM Contrast Checker
+   ```
+
+2. **Touch Target Size:**
+   ```
+   Bad:  Button is 20px x 20px (too small)
+   Good: Button is 44px x 44px minimum
+   
+   Why: People with motor impairments or thick fingers need larger targets
+   ```
+
+3. **Keyboard Navigation:**
+   ```
+   Must be able to:
+   - Tab through all interactive elements
+   - See which element is focused (visible outline)
+   - Activate buttons with Enter/Space
+   - Close modals with Escape
+   ```
+
+**Quick tip:** Try using your product with only your keyboard (no mouse). Any time you get stuck, that's an accessibility problem to document.
+
+### Step 1.2: Visual Design Primitives
+**Goal:** Build your basic building blocks - the "atoms" of your design
+
+**Think of it like cooking:** Before you can make a cake, you need basic ingredients (flour, sugar, eggs). Before you can make a design system, you need basic visual ingredients (colors, fonts, spacing).
+
+---
+
+#### **COLOR - Your Visual Palette**
+
+**What you're building:** A set of approved colors that everything in your system will use.
+
+**1. Base Palette (Brand Colors)**
+
+These are THE colors that represent your brand:
+
+```
+Real Example - Stripe:
+Primary: #635BFF (purple - their signature color)
+Used for: Main buttons, links, brand moments
+
+Real Example - Notion:  
+Primary: #000000 (black)
+Secondary: #EB5757 (red)
+Used for: Headers, important actions
+```
+
+**How to choose (for beginners):**
+- Start with your logo colors
+- Pick 1-2 primary colors that represent your brand
+- Pick 1-2 accent colors for variety
+- Keep it simple: 3-5 brand colors maximum
+
+**Quick tip:** Go to your company's brand guidelines or ask marketing for official brand colors. They'll usually give you hex codes like #3B82F6.
+
+---
+
+**2. Semantic Colors (Colors with Meaning)**
+
+These colors communicate specific meanings to users:
+
+```
+Success (Green family):
+#10B981 - "Your payment went through!"
+#DEF7EC - Light green background for success messages
+
+Warning (Yellow/Orange family):
+#F59E0B - "Please review this before continuing"
+#FEF3C7 - Light yellow background for warnings
+
+Error (Red family):
+#EF4444 - "Something went wrong"
+#FEE2E2 - Light red background for errors
+
+Info (Blue family):
+#3B82F6 - "Here's some helpful information"
+#DBEAFE - Light blue background for info messages
+```
+
+**Why these specific colors:**
+- Green = success (universal - think traffic lights)
+- Red = danger/error (universal)
+- Yellow = caution (universal)
+- Blue = informational (neutral, trustworthy)
+
+**Quick tip:** Don't reinvent the wheel. Users expect red for errors and green for success. Fight this expectation only with good reason.
+
+---
+
+**3. Neutral Scale (Grays/Backgrounds)**
+
+This is your most-used color set. You need a range from white to black:
+
+```
+Real example scale (Tailwind-style):
+
+White → Light Gray → Medium Gray → Dark Gray → Black
+#FFFFFF (backgrounds)
+#F9FAFB (subtle backgrounds)
+#F3F4F6 (borders, dividers)
+#E5E7EB (disabled buttons)
+#D1D5DB (borders)
+#9CA3AF (placeholder text)
+#6B7280 (secondary text)
+#4B5563 (body text)
+#374151 (headings)
+#1F2937 (important text)
+#111827 (maximum contrast)
+#000000 (pure black - rarely used)
+```
+
+**Why so many grays?**
+Each gray has a job:
+- Lightest grays: backgrounds, subtle divisions
+- Medium grays: borders, inactive elements
+- Dark grays: body text, secondary information
+- Darkest grays: headings, primary information
+
+**Quick tip:** Use a tool like [UI Colors](https://uicolors.app/) or Tailwind's color generator. Enter your base gray and it generates the whole scale.
+
+**Common Beginner Mistake:**
+```
+❌ BAD: Only having 3 grays (#FFF, #CCC, #000)
+Result: Everything looks either too light or too dark, no subtlety
+
+✅ GOOD: Having 10-12 grays in a scale
+Result: You can create visual hierarchy and depth
+```
+
+---
+
+**4. Dark Mode Variants**
+
+If you support dark mode, you need alternate colors:
+
+```
+Light Mode              Dark Mode
+Background: #FFFFFF  →  Background: #1F2937
+Text: #111827        →  Text: #F9FAFB
+Border: #E5E7EB      →  Border: #374151
+Card: #FFFFFF        →  Card: #374151
+
+Key principle: Flip the scale!
+Light mode uses light backgrounds + dark text
+Dark mode uses dark backgrounds + light text
+```
+
+**Quick tip:** Don't just invert colors. Dark mode should be slightly less contrasted than light mode (easier on eyes in dark environments).
+
+---
+
+#### **TYPOGRAPHY - Your Text Styles**
+
+**What you're building:** Rules for all text in your product.
+
+**1. Font Families**
+
+```
+Real Example - GitHub:
+Primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica
+(This uses the system font - different on Mac vs Windows)
+
+Real Example - Notion:
+Primary: "Inter" (custom font they host)
+
+Real Example - Code Editor:
+Monospace: "SF Mono", "Monaco", "Courier" (for code)
+```
+
+**How to choose:**
+- **System Fonts** (Free, fast, familiar)
+  - Mac: SF Pro, Helvetica
+  - Windows: Segoe UI
+  - Cross-platform: -apple-system, system-ui
+  
+- **Google Fonts** (Free, easy)
+  - Inter (modern, clean)
+  - Roboto (neutral)
+  - Open Sans (friendly)
+
+- **Custom Fonts** (Brand-specific, costs money)
+  - Requires licensing
+  - Must host font files
+  - Slower to load
+
+**Quick tip:** When in doubt, use Inter from Google Fonts. It's free, looks professional, and works everywhere.
+
+---
+
+**2. Type Scale (Font Sizes)**
+
+You need a range of sizes from small fine print to large headings:
+
+```
+Real Example Scale:
+
+Name        Size    Use Case                    Example
+xs          12px    Fine print, captions        "© 2025 Company"
+sm          14px    Small labels                Form labels
+base        16px    Body text (DEFAULT)         Paragraphs
+lg          18px    Large body, intro text      Article lead
+xl          20px    Small headings              Card titles
+2xl         24px    Section headings            <h3>
+3xl         30px    Page subheadings            <h2>
+4xl         36px    Page headings               <h1>
+5xl         48px    Display text                Landing page hero
+6xl         60px    Large display               Marketing headlines
+```
+
+**The Golden Rule:** 
+- Your base size should be 16px (readable on all devices)
+- Each step up should be noticeably bigger (1.25x or 1.5x ratio)
+- Never go smaller than 12px (accessibility issue)
+
+**Quick tip:** Use a type scale calculator like [Type-Scale.com](https://type-scale.com/). Pick "Major Third" ratio (1.25) for conservative, "Perfect Fourth" (1.33) for more dramatic.
+
+**Common Beginner Mistake:**
+```
+❌ BAD: Having arbitrary sizes (14px, 15px, 17px, 19px, 22px...)
+Result: Inconsistent, hard to maintain, no clear hierarchy
+
+✅ GOOD: Following a mathematical scale (12, 14, 16, 20, 24, 30, 36...)
+Result: Consistent, clear hierarchy, easy to remember
+```
+
+---
+
+**3. Line Heights**
+
+How much vertical space between lines of text:
+
+```
+tight       1.25    (Headlines, short text)
+normal      1.5     (Body text - DEFAULT)
+relaxed     1.75    (Long-form reading)
+loose       2.0     (Very spacious text)
+
+Example:
+"This is body text"  ← 16px font size
+[8px space above]    ← Half of 16px (from line-height 1.5)
+"This is more text"  ← Another 16px
+[8px space below]
+```
+
+**The Rule:** Longer lines need more line height for readability.
+
+**Quick tip:** 
+- Headlines (1-2 lines): use 1.2-1.3
+- Body text (multiple lines): use 1.5-1.6
+- Long articles: use 1.6-1.75
+
+---
+
+**4. Font Weights**
+
+How thick/bold the letters are:
+
+```
+Weight      Value   Use Case
+Light       300     Large display text, decorative
+Regular     400     Body text (DEFAULT)
+Medium      500     Emphasized text, buttons
+Semibold    600     Subheadings, important labels
+Bold        700     Headings, strong emphasis
+```
+
+**Quick tip:** Not all fonts have all weights. Check your chosen font's available weights before planning.
+
+**Common Beginner Mistake:**
+```
+❌ BAD: Using Bold (700) for everything that needs emphasis
+Result: Everything screams, nothing stands out
+
+✅ GOOD: Using Regular (400) for body, Medium (500) for buttons, 
+         Semibold (600) for small headings, Bold (700) for main headings
+Result: Clear hierarchy
+```
+
+---
+
+**5. Letter Spacing (Tracking)**
+
+Space between individual letters:
+
+```
+tight       -0.02em     Headings (pulls letters together)
+normal      0           Body text (DEFAULT)
+wide        0.05em      Small caps, labels
+wider       0.1em       Button text, tags
+```
+
+**When to use:**
+- **Negative** (tight): Large headings to avoid looking "loose"
+- **Positive** (wide): ALL CAPS TEXT (makes it readable)
+
+**Quick tip:** 99% of your text should use "normal" (0). Only adjust for ALL CAPS or very large/small text.
+
+---
+
+#### **SPACING - How Things Breathe**
+
+**What you're building:** A system for all gaps, margins, and padding in your product.
+
+**The Magic Number: Base Unit**
+
+Pick one number as your foundation. Everything else multiplies from it.
+
+```
+Most Common: 8px
+Why? Divides evenly, works with most screen sizes
+
+Scale from 8px:
+4px   (half)         Tight spacing between related items
+8px   (1x)          Small gaps, compact layouts  
+12px  (1.5x)        In-between size
+16px  (2x)          Default spacing (most common)
+24px  (3x)          Medium spacing between sections
+32px  (4x)          Large gaps, breathing room
+48px  (6x)          Section separators
+64px  (8x)          Major sections
+96px  (12x)         Between page sections
+128px (16x)         Hero section padding
+```
+
+**Real Example - Button Spacing:**
+```
+Button Interior (padding):
+  Top/Bottom: 8px   (makes it touchable)
+  Left/Right: 16px  (gives text room)
+
+Button Spacing (margins):
+  Between buttons: 8px (keeps them as a group)
+  From other content: 24px (shows separation)
+```
+
+**Visual Example:**
+```
+[Header]                    ← 0px from top
+  [32px space]              ← Large gap before content
+[Section Title]             ← Text
+  [8px space]               ← Small gap (title & content are related)
+[Paragraph text...]         ← Text
+  [16px space]              ← Default gap between paragraphs
+[Paragraph text...]         ← Text
+  [48px space]              ← Large gap before new section
+[Next Section Title]        ← Text
+```
+
+**Quick tip:** When in doubt, use 16px (2x your base). It's the Goldilocks spacing - not too tight, not too loose.
+
+**Common Beginner Mistake:**
+```
+❌ BAD: Random spacing (7px here, 13px there, 22px elsewhere)
+Result: Inconsistent, hard to maintain
+
+✅ GOOD: Only using multiples of your base unit (8, 16, 24, 32...)
+Result: Consistent rhythm, easy to remember
+```
+
+---
+
+#### **SIZING - How Big Things Are**
+
+**1. Icon Sizes**
+
+```
+xs     16px    Inline with text
+sm     20px    Small buttons, tight spaces
+md     24px    Default button icons
+lg     32px    Feature icons, cards
+xl     40px    Hero sections
+2xl    48px    Large features
+```
+
+**The Rule:** Icons should align to your spacing scale.
+
+---
+
+**2. Component Heights**
+
+```
+Name        Height  Use Case
+xs          24px    Compact tags, chips
+sm          32px    Small buttons (desktop)
+md          40px    Default buttons (desktop)
+lg          44px    Mobile touch targets
+xl          48px    Prominent actions
+
+Remember: 44px minimum for mobile touch targets (iOS/Android requirement)
+```
+
+---
+
+**3. Container Widths (Breakpoints)**
+
+Where your design changes for different screen sizes:
+
+```
+xs      320px   Small phones (iPhone SE)
+sm      640px   Large phones (iPhone Pro)
+md      768px   Tablets (iPad portrait)
+lg      1024px  Tablets landscape, small laptops
+xl      1280px  Desktops
+2xl     1536px  Large desktops
+
+Max Content Width: 1280px
+Why? Lines of text become unreadable when too wide
+```
+
+**Quick tip:** Use Tailwind's breakpoints - they're battle-tested and work well.
+
+---
+
+#### **BORDERS & RADII - Edges and Corners**
+
+**1. Border Widths**
+
+```
+none    0px     No border
+thin    1px     Default borders (most common)
+medium  2px     Emphasized borders, focus states
+thick   4px     Strong emphasis, active states
+```
+
+**Quick tip:** 99% of borders should be 1px. Use thicker only for focus/active states.
+
+---
+
+**2. Corner Radii (Roundness)**
+
+```
+none    0px     Sharp, serious, technical
+sm      2px     Slight softness
+DEFAULT 4px     Standard (most common)
+md      8px     Friendly, modern
+lg      12px    Soft, approachable
+xl      16px    Very rounded
+2xl     24px    Pillow-like
+full    9999px  Circles, pills
+
+Real Examples:
+- GitHub: 6px (slightly rounded)
+- Stripe: 8px (modern)
+- Notion: 3px (subtle)
+- Linear: 8px (clean)
+```
+
+**The Rule:** Pick ONE default radius and stick to it everywhere. Add 1-2 variants if needed.
+
+**Common Beginner Mistake:**
+```
+❌ BAD: Different roundness on every component (5px, 8px, 12px, 15px...)
+Result: Inconsistent, chaotic
+
+✅ GOOD: One radius everywhere (8px), maybe a second for special cases (16px)
+Result: Cohesive, intentional
+```
+
+---
+
+#### **SHADOWS & EFFECTS - Depth and Layers**
+
+Shadows create the illusion that elements float above the page.
+
+```
+Elevation Scale:
+
+xs (subtle)
+  Shadow: 0 1px 2px rgba(0,0,0,0.05)
+  Use: Slight depth, input fields
+
+sm (small)
+  Shadow: 0 2px 4px rgba(0,0,0,0.1)
+  Use: Buttons, cards
+
+md (medium) - DEFAULT
+  Shadow: 0 4px 6px rgba(0,0,0,0.1)
+  Use: Dropdowns, popovers
+
+lg (large)
+  Shadow: 0 10px 15px rgba(0,0,0,0.1)
+  Use: Modals, dialogs
+
+xl (extra large)
+  Shadow: 0 20px 25px rgba(0,0,0,0.15)
+  Use: Notifications, tooltips floating far above
+
+2xl (maximum)
+  Shadow: 0 25px 50px rgba(0,0,0,0.25)
+  Use: Full-screen overlays, important modals
+```
+
+**The Pattern:**
+- Y-offset increases (pushes shadow down)
+- Blur increases (makes shadow softer)
+- Opacity increases slightly (shadow gets darker)
+
+**Visual Explanation:**
+```
+No Shadow:
+[Button]  ← Flat, looks like part of the page
+
+Small Shadow:
+[Button]  ← Looks slightly raised
+  ·∴·
+
+Large Shadow:
+[Button]  ← Looks like it's floating
+    ░░░
+   ░░░░░
+```
+
+**Quick tip:** Use "md" (medium) as default. Only use larger shadows for things that truly float (modals, notifications).
+
+**Common Beginner Mistake:**
+```
+❌ BAD: Using large shadows everywhere
+Result: Everything floats, nothing feels grounded
+
+✅ GOOD: Most things have no/small shadow, only floating elements have large shadows
+Result: Clear hierarchy, purposeful depth
+```
+
+---
+
+### **Quick Checklist: Did I Cover Everything?**
+
+After completing Step 1.2, you should have:
+
+- [ ] Color palette with exact hex codes (#3B82F6 style)
+- [ ] Semantic colors for success/warning/error/info
+- [ ] Gray scale with 10-12 shades from white to black
+- [ ] Dark mode color variants (if needed)
+- [ ] Font family chosen (with backup fonts)
+- [ ] Type scale (8-10 sizes from 12px to 60px)
+- [ ] Line height values (tight, normal, relaxed)
+- [ ] Font weights you'll use (400, 500, 600, 700)
+- [ ] Spacing scale based on 8px (or 4px) unit
+- [ ] Icon sizes (16, 20, 24, 32, 40, 48)
+- [ ] Component heights (32, 40, 44, 48)
+- [ ] Breakpoints for responsive design
+- [ ] Border widths (1px default, 2px emphasis)
+- [ ] Corner radii (pick 1-2 values, stick to them)
+- [ ] Shadow scale (5-6 elevation levels)
+
+---
+
+### Step 1.3: AI-Augmented Design System Generation
+
+**Goal:** Use LLMs to accelerate and complete your design primitives
+
+This section covers workflows where you start with partial design work and use AI to fill gaps, generate variations, and ensure completeness.
+
+---
+
+#### **Complexity Level 1: Generate Missing Color Scales**
+
+**What you have:** A single brand color  
+**What you need:** A complete color scale (50-900)
+
+**Workflow:**
+
+1. **In Figma:** Create a frame with your brand color
+   - Draw rectangle, fill with `#3B82F6`
+   - Add text label: "Brand Blue - 500"
+
+2. **Extract the color:**
+   - Select rectangle → Copy properties
+   - Note the hex code
+
+3. **Prompt to LLM:**
+```
+I have a brand color: #3B82F6
+
+Generate a complete 10-step color scale (50, 100, 200, 300, 400, 500, 600, 700, 800, 900) where:
+- 50 is the lightest tint
+- 500 is my brand color (given)
+- 900 is the darkest shade
+
+Also generate the inverted scale for dark mode.
+
+Output as a table:
+| Shade | Light Mode | Dark Mode | Usage Suggestion |
+
+Ensure proper color theory (perceptually uniform lightness steps).
+```
+
+4. **LLM Output Example:**
+```
+| Shade | Light Mode | Dark Mode | Usage Suggestion |
+|-------|------------|-----------|------------------|
+| 50    | #EFF6FF    | #1E3A8A   | Subtle backgrounds |
+| 100   | #DBEAFE    | #1E40AF   | Hover states (light) |
+| 200   | #BFDBFE    | #1D4ED8   | Disabled states |
+| 300   | #93C5FD    | #2563EB   | Borders |
+| 400   | #60A5FA    | #3B82F6   | Secondary actions |
+| 500   | #3B82F6    | #60A5FA   | Primary actions |
+| 600   | #2563EB    | #93C5FD   | Hover states (dark) |
+| 700   | #1D4ED8    | #BFDBFE   | Active states |
+| 800   | #1E40AF    | #DBEAFE   | Text on light bg |
+| 900   | #1E3A8A    | #EFF6FF   | Maximum contrast |
+```
+
+5. **Back to Figma:**
+   - Create color variables for each shade
+   - Apply to test components to verify
+   - Adjust if needed based on visual review
+
+**Time saved:** 30-45 minutes per color family
+
+---
+
+#### **Complexity Level 2: Complete Typography System from Font Choice**
+
+**What you have:** A font family selected  
+**What you need:** Complete type scale, weights, line heights, and usage guidelines
+
+**Workflow:**
+
+1. **In Figma:** Create text samples
+   - Headline: 48px / Bold
+   - Body: 16px / Regular
+   - Small text: 12px / Regular
+
+2. **Prompt to LLM:**
+```
+I'm using Inter font for my design system. I have these starting points:
+- Display: 48px, Bold (700)
+- Body: 16px, Regular (400)
+- Small: 12px, Regular (400)
+
+Generate a complete typography system:
+1. Type scale (8-10 sizes) using a 1.25 ratio (Major Third)
+2. Appropriate font weights for each size
+3. Line heights (maintain readability)
+4. Letter spacing adjustments
+5. Usage guidelines (what each size is for)
+6. Min/max line lengths for readability
+
+Also specify which sizes work for mobile vs desktop.
+```
+
+3. **LLM Output Example:**
+```
+## Typography System - Inter
+
+### Scale (Major Third - 1.25 ratio)
+
+| Name  | Size | Weight | Line Height | Letter Spacing | Usage |
+|-------|------|--------|-------------|----------------|-------|
+| xs    | 12px | 400    | 1.5 (18px)  | 0.01em        | Captions, legal text |
+| sm    | 14px | 400    | 1.5 (21px)  | 0             | Small UI labels |
+| base  | 16px | 400    | 1.5 (24px)  | 0             | Body text (primary) |
+| lg    | 20px | 500    | 1.4 (28px)  | -0.01em       | Large body, intros |
+| xl    | 24px | 600    | 1.3 (31px)  | -0.01em       | Subheadings (h3) |
+| 2xl   | 30px | 600    | 1.3 (39px)  | -0.02em       | Section headings (h2) |
+| 3xl   | 36px | 700    | 1.2 (43px)  | -0.02em       | Page titles (h1) |
+| 4xl   | 48px | 700    | 1.1 (53px)  | -0.03em       | Hero text |
+
+### Responsive Guidelines
+- Mobile: Use base (16px) to xl (24px) range
+- Desktop: Full range available
+- Max line length: 65-75 characters (optimal readability)
+```
+
+4. **Back to Figma:**
+   - Create typography variables
+   - Create text styles for each size
+   - Test on actual content
+
+**Time saved:** 1-2 hours of research and calculation
+
+---
+
+#### **Complexity Level 3: Generate Complete Spacing System from Base Unit**
+
+**What you have:** Knowledge that you want an 8px grid  
+**What you need:** Complete spacing scale with usage guidelines
+
+**Workflow:**
+
+1. **Prompt to LLM:**
+```
+I'm building a design system with an 8px base unit.
+
+Generate:
+1. Complete spacing scale (multiplicative and divisional)
+2. Names for each spacing value (xs, sm, md, etc.)
+3. Usage guidelines for each
+4. Component-specific spacing recommendations (button padding, card gaps, section spacing)
+5. Responsive adjustments (mobile vs desktop)
+
+Also explain the mathematical reasoning behind each step.
+```
+
+2. **LLM Output Example:**
+```
+## Spacing System - 8px Base Unit
+
+### Core Scale
+
+| Name | Value | Multiplier | Usage |
+|------|-------|------------|-------|
+| 3xs  | 2px   | 0.25x      | Icon spacing, fine details |
+| 2xs  | 4px   | 0.5x       | Tight spacing within components |
+| xs   | 8px   | 1x (base)  | Small gaps, compact layouts |
+| sm   | 12px  | 1.5x       | Default component padding |
+| md   | 16px  | 2x         | Default gaps (most common) |
+| lg   | 24px  | 3x         | Loose spacing, section separation |
+| xl   | 32px  | 4x         | Large gaps, major sections |
+| 2xl  | 48px  | 6x         | Section dividers |
+| 3xl  | 64px  | 8x         | Page sections |
+| 4xl  | 96px  | 12x        | Hero sections, major divisions |
+
+### Component Recipes
+
+**Button:**
+- Internal padding: 2xs (4px) vertical, sm (12px) horizontal
+- Between buttons: xs (8px)
+- From other content: md (16px)
+
+**Card:**
+- Internal padding: md (16px) mobile, lg (24px) desktop
+- Between cards: md (16px)
+- Card to edge: md (16px) mobile, xl (32px) desktop
+
+**Form Fields:**
+- Label to input: xs (8px)
+- Between fields: md (16px)
+- Form section gaps: xl (32px)
+```
+
+3. **Back to Figma:**
+   - Create spacing variables
+   - Test with actual layouts
+   - Create auto-layout presets
+
+**Time saved:** 2-3 hours of testing and refinement
+
+---
+
+#### **Complexity Level 4: Audit Existing Design and Generate Standardized System**
+
+**What you have:** Messy existing designs with inconsistent values  
+**What you need:** Clean, standardized design system
+
+**Workflow:**
+
+1. **In Figma:** Use the Design System Analyzer plugin or manually:
+   - Select all frames
+   - Note all unique colors (Figma shows in right panel)
+   - Note all unique text sizes
+   - Note all unique spacing values
+
+2. **Document findings:**
+```
+Colors found: 47 unique shades
+- Blues: #1E40AF, #2563EB, #3B82F6, #60A5FA, #3d7ef7, #4287f5
+- Grays: #333333, #555555, #666666, #6B7280, #999999, #CCCCCC
+- Reds: #DC2626, #EF4444, #F87171, #e74c3c
+
+Text sizes found: 23 unique values
+- 11px, 12px, 13px, 14px, 15px, 16px, 17px, 18px, 19px, 20px, 22px, 24px, 28px, 30px, 32px, 36px, 40px, 48px
+
+Spacing values: Too many to count (random px values everywhere)
+```
+
+3. **Prompt to LLM:**
+```
+I have an existing design with these inconsistencies:
+
+COLORS FOUND:
+- Blues: #1E40AF, #2563EB, #3B82F6, #60A5FA, #3d7ef7, #4287f5
+- Grays: #333333, #555555, #666666, #6B7280, #999999, #CCCCCC
+- Reds: #DC2626, #EF4444, #F87171, #e74c3c
+
+TEXT SIZES: 11px, 12px, 13px, 14px, 15px, 16px, 17px, 18px, 19px, 20px, 22px, 24px, 28px, 30px, 32px, 36px, 40px, 48px
+
+Task:
+1. Analyze these values and identify the "intent" behind them
+2. Propose a clean, standardized system (5-6 blues, 10 grays, 3-4 reds)
+3. Create a mapping guide: "Replace #3d7ef7 with your new blue-500"
+4. Standardize text sizes to a proper scale (7-8 sizes max)
+5. Provide reasoning for each consolidation decision
+
+Output as:
+- Proposed system
+- Migration mapping table
+- Potential issues to watch for
+```
+
+4. **LLM Output Example:**
+```
+## Analysis
+
+The blues cluster around 3 groups:
+- Dark blues (#1E40AF, #2563EB) → Action/primary
+- Medium blues (#3B82F6, #60A5FA, #3d7ef7, #4287f5) → All trying to be "brand blue"
+- Light blues missing → Need to add
+
+## Proposed Standardized System
+
+### Blue Scale
+50:  #EFF6FF (new - backgrounds)
+100: #DBEAFE (new - subtle)
+200: #BFDBFE (new - hover states)
+300: #93C5FD (new - disabled)
+400: #60A5FA (keep)
+500: #3B82F6 (primary brand - keep)
+600: #2563EB (keep)
+700: #1D4ED8 (new - active states)
+800: #1E40AF (keep)
+900: #1E3A8A (new - max contrast)
+
+### Migration Map
+
+| Old Color | New Color | Reasoning | Count |
+|-----------|-----------|-----------|-------|
+| #3d7ef7   | blue-500  | Only 0.8% different from #3B82F6 | 23 |
+| #4287f5   | blue-400  | Lighter variant, map to 400 | 12 |
+| #2563EB   | blue-600  | Keep as-is | 34 |
+| #1E40AF   | blue-800  | Keep as-is | 8 |
+
+### Text Size Consolidation
+
+Old sizes → New size (reasoning):
+- 11px, 12px → 12px (xs - minimum readable)
+- 13px, 14px, 15px → 14px (sm - small UI text)
+- 16px, 17px → 16px (base - body default)
+- 18px, 19px, 20px → 20px (lg - emphasized text)
+- 22px, 24px → 24px (xl - subheadings)
+- 28px, 30px, 32px → 30px (2xl - section heads)
+- 36px, 40px → 36px (3xl - page titles)
+- 48px → 48px (4xl - hero)
+
+Eliminated: 23 sizes → 8 sizes (65% reduction)
+
+### Potential Issues
+⚠️ Buttons using #3d7ef7 will shift slightly darker
+⚠️ Text at 15px will become 14px (check line heights)
+⚠️ Recommend A/B testing the 17px→16px change (significant amount of body text)
+```
+
+5. **Back to Figma:**
+   - Create new standardized variables
+   - Use find/replace on color values
+   - Create text styles migration guide
+   - Test changes on key screens before rolling out
+
+**Time saved:** 4-6 hours of manual analysis and decision-making
+
+---
+
+#### **Complexity Level 5: Generate Complete Design System from Brand Guidelines and Competitor Analysis**
+
+**What you have:** PDF brand guidelines, competitor screenshots, rough product sketches  
+**What you need:** Fully specified design system primitives
+
+**Workflow:**
+
+1. **Gather materials:**
+   - Upload brand guidelines PDF to LLM (if supported)
+   - Screenshot 3-5 competitor products
+   - Create rough wireframes in Figma
+   - List your product's unique positioning
+
+2. **Comprehensive Prompt:**
+```
+I'm building a design system for [product type]. Here's my context:
+
+BRAND GUIDELINES: 
+- Primary brand colors: #3B82F6 (blue), #10B981 (green accent)
+- Font family requirements: Inter for UI, Space Grotesk for headlines
+- Brand personality: Professional, approachable, modern, trustworthy
+
+COMPETITOR ANALYSIS:
+Competitor A: Uses very rounded corners (16px), pastel colors, playful tone
+Competitor B: Sharp angles (0px radius), high contrast, bold corporate
+Competitor C: Minimal, lots of whitespace, soft shadows
+
+MY PRODUCT POSITIONING:
+- Target users: B2B SaaS, decision makers age 35-55
+- Key differentiator: Simplicity without sacrificing power
+- Platform: Web app (desktop primary, mobile responsive)
+- Accessibility requirement: WCAG 2.1 AA minimum
+
+TASK:
+Generate a complete design primitive system including:
+
+1. COLOR SYSTEM:
+   - Extract brand colors and build full scales (50-900)
+   - Propose semantic color names
+   - Suggest colors NOT in brand guide but needed (grays, error/warning states)
+   - Dark mode adaptation
+   - Ensure all colors meet WCAG AA contrast (4.5:1 for normal text)
+
+2. TYPOGRAPHY:
+   - Complete type scale using both fonts appropriately
+   - Weights needed for hierarchy
+   - Line heights for readability
+   - Responsive sizing recommendations (mobile vs desktop)
+
+3. SPACING & LAYOUT:
+   - Base unit recommendation (4px vs 8px - provide reasoning)
+   - Spacing scale with usage guidelines
+   - Container widths and breakpoints
+
+4. BORDER RADIUS:
+   - Sharp vs rounded recommendation based on positioning
+   - Scale of radii needed (justify each)
+
+5. SHADOWS:
+   - Elevation system appropriate for our brand personality
+   - Light vs heavy shadow recommendation
+
+6. COMPETITIVE DIFFERENTIATION:
+   - How our system should feel different from competitors
+   - Specific design decisions that reinforce "simple but powerful" positioning
+
+Output as a complete specification with rationale for each decision.
+```
+
+3. **LLM Output Structure:**
+```
+# Design System Specification - [Your Product]
+
+## Executive Summary
+Based on your brand guidelines and competitive landscape, I recommend a design system 
+that balances professionalism with approachability. Your "simple but powerful" 
+positioning suggests moderate (8px) border radius, confident but not aggressive colors, 
+and generous spacing to emphasize clarity.
+
+## 1. Color System
+
+### Primary Blue Scale (from #3B82F6)
+| Shade | Hex     | Usage | WCAG AA Pass |
+|-------|---------|-------|--------------|
+| 50    | #EFF6FF | Backgrounds | ✅ (with gray-900 text) |
+| 100   | #DBEAFE | Hover backgrounds | ✅ |
+| ...   | ...     | ... | ... |
+
+Rationale: Your brand blue (#3B82F6) is vibrant but professional. I've created lighter 
+tints for backgrounds and darker shades for text/icons to ensure accessibility.
+
+### Gray Scale (Proposed)
+50:  #FAFAFA - Subtle backgrounds
+100: #F5F5F5 - Card backgrounds
+200: #E5E5E5 - Borders (most common)
+...
+
+Rationale: Using a warm gray (slight blue undertone) to complement your brand color 
+while maintaining neutrality.
+
+### Feedback Colors (New)
+Success: #10B981 (from your accent green) → Full scale
+Warning: #F59E0B (complements blue/green without clashing)
+Error: #EF4444 (high visibility, WCAG AA compliant)
+
+### Dark Mode Adaptation
+[Inverted scales with explanations]
+
+### Competitive Differentiation
+- Competitor A uses pastels → We use more saturated, confident tones
+- Competitor B uses pure blacks → We use softer dark grays (more approachable)
+- Our unique approach: Mid-saturation colors that feel both professional and human
+
+## 2. Typography System
+
+### Font Pairing Strategy
+- **Inter** for all UI text (body, labels, buttons) - highly legible, professional
+- **Space Grotesk** for headlines/hero sections only - adds personality without overwhelming
+
+### Type Scale (1.25 ratio - Major Third)
+Reasoning: More restrained than Perfect Fourth (1.33), appropriate for B2B
+
+| Name  | Size | Font | Weight | Line Height | Usage |
+|-------|------|------|--------|-------------|-------|
+| xs    | 12px | Inter | 400 | 1.5 | Fine print, captions |
+| sm    | 14px | Inter | 400 | 1.5 | Small labels, secondary text |
+| base  | 16px | Inter | 400 | 1.5 | Body text (primary) |
+| lg    | 20px | Inter | 500 | 1.4 | Emphasized body, intros |
+| xl    | 24px | Inter | 600 | 1.3 | Small headings, card titles |
+| 2xl   | 30px | Space Grotesk | 600 | 1.2 | Section headings |
+| 3xl   | 36px | Space Grotesk | 700 | 1.2 | Page titles |
+| 4xl   | 48px | Space Grotesk | 700 | 1.1 | Hero headlines |
+
+### Responsive Strategy
+Mobile: Cap at xl (24px) for headings, use base (16px) for body
+Desktop: Full scale available
+
+## 3. Spacing System
+
+### Base Unit: 8px
+Reasoning: Provides more granularity than 4px without the complexity of random values.
+Works well with common component heights (40px, 48px divisible by 8).
+
+### Scale
+[2px, 4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px, 96px, 128px]
+
+### Layout System
+Container max-width: 1280px (optimal line length, works on most screens)
+Breakpoints: 
+- Mobile: 640px
+- Tablet: 768px
+- Desktop: 1024px
+- Wide: 1280px
+
+## 4. Border Radius
+
+### Recommendation: Moderate (8px default)
+Reasoning: 
+- Not sharp like Competitor B (too corporate)
+- Not overly round like Competitor A (too playful)
+- Suggests modern, refined, approachable
+
+### Scale
+| Name | Value | Usage |
+|------|-------|-------|
+| none | 0px   | Data tables, technical views |
+| sm   | 4px   | Small elements (badges, tags) |
+| md   | 8px   | Buttons, inputs, cards (default) |
+| lg   | 12px  | Modals, large containers |
+| full | 9999px | Pills, avatar shapes |
+
+## 5. Shadow System
+
+### Approach: Subtle elevation (not heavy)
+Reasoning: Aligns with "simple" positioning. Heavy shadows feel cluttered.
+
+| Level | Shadow | Usage |
+|-------|--------|-------|
+| sm    | 0 1px 2px rgba(0,0,0,0.05) | Inputs, subtle depth |
+| md    | 0 4px 6px rgba(0,0,0,0.07) | Cards, buttons (default) |
+| lg    | 0 10px 15px rgba(0,0,0,0.10) | Dropdowns, popovers |
+| xl    | 0 20px 25px rgba(0,0,0,0.12) | Modals, dialogs |
+
+Note: Opacity kept low (5-12%) for subtlety
+
+## 6. Competitive Differentiation Summary
+
+### What makes us visually different:
+
+**vs Competitor A (Playful):**
+- More saturated colors → Confident, not cute
+- Moderate radius (8px vs 16px) → Professional
+- Tighter spacing → Information-dense for power users
+
+**vs Competitor B (Corporate):**
+- Rounded corners (8px vs 0px) → Approachable
+- Softer shadows → Less intimidating
+- Warmer grays → Human, not cold
+
+**vs Competitor C (Minimal):**
+- More defined structure → Powerful tools need clear UI
+- Slightly more color → Warmth and guidance
+- Moderate spacing → Balance between spacious and efficient
+
+**Our unique position:**
+"Professional workspace that feels good to use" - confident colors, 
+clear hierarchy, generous (not excessive) spacing, subtle refinements
+
+## Implementation Priority
+
+### Phase 1 (Week 1): Core Foundation
+- [ ] Create color variables (primitives + semantic)
+- [ ] Create spacing variables
+- [ ] Create typography styles
+- [ ] Build test components (button, input, card)
+
+### Phase 2 (Week 2): Components
+- [ ] Build full component library using tokens
+- [ ] Test on actual product screens
+- [ ] Adjust based on real usage
+
+### Phase 3 (Week 3): Documentation
+- [ ] Usage guidelines
+- [ ] Code examples
+- [ ] Accessibility documentation
+
+## Figma Setup Checklist
+1. Create new file: "Design System - [Product Name]"
+2. Create variable collections (follow naming in spec)
+3. Create component library
+4. Publish to team library
+5. Begin migration from old designs
+```
+
+4. **Iterate with LLM:**
+```
+The shadow system still feels too heavy for our minimal approach. Can you:
+1. Reduce to 3 elevation levels instead of 4
+2. Lower opacity to 3-8% range
+3. Show me the exact CSS shadow values
+4. Suggest when to use elevation vs borders for separation
+```
+
+5. **Implementation in Figma:**
+   - Work through LLM output section by section
+   - Create variables for each system
+   - Build test components
+   - Apply to a real screen for validation
+   - Get stakeholder feedback
+   - Iterate problem areas with specific follow-up prompts
+
+**Time saved:** 1-2 weeks of design system foundation work
+
+---
+
+### **AI-Augmented Best Practices**
+
+**When to use AI augmentation:**
+✅ Generating mathematical scales (colors, typography, spacing)  
+✅ Analyzing existing designs for patterns and inconsistencies  
+✅ Creating comprehensive documentation and guidelines  
+✅ Suggesting semantic naming conventions  
+✅ Checking accessibility compliance (contrast ratios)  
+✅ Generating dark mode variants systematically  
+✅ Proposing component spacing recipes  
+✅ Creating migration guides from old to new systems  
+
+**When NOT to rely solely on AI:**
+❌ Final brand color selection (needs human aesthetic judgment)  
+❌ Emotional resonance decisions (does this feel right for our users?)  
+❌ Political design decisions (requires team alignment and buy-in)  
+❌ Initial brand strategy and positioning  
+❌ Replacing actual user testing and feedback  
+❌ Choosing between equally valid technical approaches (needs context)  
+
+**Recommended Iterative Workflow:**
+1. **Generate:** Start with AI suggestion based on clear prompt
+2. **Apply:** Create variables/components in Figma
+3. **Test:** Apply to real designs, not just abstract examples
+4. **Review:** Get feedback from team and stakeholders
+5. **Refine:** Go back to AI with specific adjustments: "This feels too [x], make it more [y]"
+6. **Validate:** Test on actual product screens
+7. **Repeat:** Iterate until it feels right
+
+**Pro Tips:**
+- Always create visual examples in Figma before committing to AI suggestions
+- Test color scales side-by-side at different sizes
+- Apply typography scales to real content (not Lorem Ipsum)
+- Have AI explain the "why" behind recommendations
+- Ask AI to provide alternatives: "Give me 3 different approaches to [x]"
+- Use AI to spot inconsistencies you might miss manually
+
+---
+
+**Quick tip:** Always review AI-generated color scales visually in Figma. Mathematical perfection doesn't always equal visual perfection. Create a test frame with all shades arranged light-to-dark and compare side-by-side. Your eyes are the final judge.
+
+**What's Next:** Now that you have your primitives defined (with or without AI assistance), you'll create Figma Variables to store them in Phase 2.
+
+---
+
+## Phase 2: Design Tokens & Variables
+
+**What are Design Tokens?**
+Think of them like variables in code. Instead of writing the color blue (#3B82F6) everywhere, you create a token called "primary-blue" and reference that. If you need to change the shade of blue later, you change it once, and it updates everywhere.
+
+**What are Figma Variables?**
+Figma's way of storing design tokens. They were introduced in 2023 and are now the standard way to manage design systems.
+
+**Why this matters:**
+Without variables: You have to manually update every button when you change the brand color.
+With variables: Change the variable once, all 500 buttons update automatically.
+
+---
+
+### Step 2.1: Create Variable Collections
+
+**What's a Collection?**
+A container that groups related variables. Think of it like a folder for similar things.
+
+#### **In Figma: Creating Your First Collection**
+
+**Step-by-step:**
+
+1. **Open Figma and create a new file**
+   - File → New design file
+   - Name it: "Design System - [Your Company Name]"
+
+2. **Access the Variables Panel**
+   - Look for the icon in right sidebar (looks like two overlapping circles)
+   - Or: Menu → View → Variables
+   - Or: Keyboard shortcut: Option + Shift + K (Mac) / Alt + Shift + K (Windows)
+
+3. **Create your first collection**
+   - Click the "+" button in Variables panel
+   - Choose "Create collection"
+   - Name it: "Primitives - Colors"
+
+**What you'll see:**
+```
+Variables Panel
+├── 📁 Primitives - Colors (your new collection)
+    └── Mode: Default
+```
+
+---
+
+#### **Recommended File Structure**
+
+Create these files (separate Figma files work best):
+
+```
+📁 Your Design System
+  ├── 📄 1. Primitives Library
+  │   Purpose: Raw values, rarely changed
+  │   Collections: Colors, Spacing, Typography, Sizing
+  │
+  ├── 📄 2. Semantic Tokens
+  │   Purpose: Meaningful names that reference primitives
+  │   Collections: UI Colors, Text Colors, Borders, Backgrounds
+  │
+  ├── 📄 3. Component Tokens  
+  │   Purpose: Component-specific values
+  │   Collections: Button, Input, Card, Navigation
+  │
+  └── 📄 4. Documentation
+      Purpose: Examples and guidelines
+```
+
+**Why separate files?**
+- Easier to manage permissions (designers can use primitives but not edit them)
+- Better performance (Figma loads faster)
+- Clearer separation of concerns
+
+**Quick tip:** Start with just ONE file containing everything. Split into multiple files later when you have 50+ variables.
+
+---
+
+### Step 2.2: Primitive Variables - Your Foundation
+
+**What are Primitives?**
+The raw values - the actual colors, numbers, sizes. These are like ingredients in a recipe.
+
+#### **Naming Convention Deep Dive**
+
+**Format:** `primitive/category/name/variant`
+
+**Real Examples:**
+```
+primitive/color/blue/50      (lightest blue)
+primitive/color/blue/100
+primitive/color/blue/500     (medium blue - often your brand color)
+primitive/color/blue/900     (darkest blue)
+
+primitive/spacing/xs         (4px or smallest gap)
+primitive/spacing/sm         (8px)
+primitive/spacing/md         (16px - most common)
+
+primitive/size/icon/sm       (16px small icon)
+primitive/size/icon/md       (24px medium icon)
+```
+
+**Why the slashes?**
+Figma organizes variables into groups automatically when you use `/`. It creates a tree structure:
+
+```
+primitive
+├── color
+│   ├── blue
+│   │   ├── 50
+│   │   ├── 100
+│   │   └── 500
+│   └── gray
+│       ├── 50
+│       └── 100
+└── spacing
+    ├── xs
+    └── sm
+```
+
+---
+
+#### **Step-by-Step: Creating Color Primitives in Figma**
+
+**1. Create the Colors Collection**
+- Variables panel → "+" → "Create collection"
+- Name it: "Primitives - Colors"
+
+**2. Add Light and Dark Modes**
+- Click on the collection
+- You'll see "Default" mode
+- Click "+" next to Modes
+- Add mode: "Light"
+- Add mode: "Dark"
+- Delete "Default" mode (we'll use Light/Dark explicitly)
+
+**What you'll see:**
+```
+Primitives - Colors
+├── Mode: Light
+└── Mode: Dark
+```
+
+**3. Create Your First Variable**
+- Click "Create variable" button
+- Choose type: "Color"
+- Name it: `primitive/color/blue/500`
+
+**4. Set the Values**
+- In Light mode: Click the color square → Enter `#3B82F6`
+- In Dark mode: Click the color square → Enter `#3B82F6` (same for now)
+
+**5. Repeat for Your Full Color Scale**
+
+Here's a full blue scale to create:
+
+```
+Variable Name                Light Mode Value    Dark Mode Value
+primitive/color/blue/50      #EFF6FF            #1E3A8A
+primitive/color/blue/100     #DBEAFE            #1E40AF
+primitive/color/blue/200     #BFDBFE            #1D4ED8
+primitive/color/blue/300     #93C5FD            #2563EB
+primitive/color/blue/400     #60A5FA            #3B82F6
+primitive/color/blue/500     #3B82F6            #60A5FA (flipped!)
+primitive/color/blue/600     #2563EB            #93C5FD
+primitive/color/blue/700     #1D4ED8            #BFDBFE
+primitive/color/blue/800     #1E40AF            #DBEAFE
+primitive/color/blue/900     #1E3A8A            #EFF6FF
+```
+
+**Notice the pattern:** Dark mode flips the scale! Light blues become dark blues and vice versa.
+
+**6. Create Your Gray Scale**
+
+```
+Variable Name                Light Mode Value    Dark Mode Value
+primitive/color/gray/50      #F9FAFB            #18181B
+primitive/color/gray/100     #F3F4F6            #27272A
+primitive/color/gray/200     #E5E7EB            #3F3F46
+primitive/color/gray/300     #D1D5DB            #52525B
+primitive/color/gray/400     #9CA3AF            #71717A
+primitive/color/gray/500     #6B7280            #A1A1AA (middle stays same)
+primitive/color/gray/600     #4B5563            #D4D4D8
+primitive/color/gray/700     #374151            #E4E4E7
+primitive/color/gray/800     #1F2937            #F4F4F5
+primitive/color/gray/900     #111827            #FAFAFA
+```
+
+---
+
+#### **Step-by-Step: Creating Spacing Primitives**
+
+**1. Create New Collection**
+- Variables panel → "+" → "Create collection"
+- Name: "Primitives - Spacing"
+
+**2. Choose Variable Type**
+- This time choose: "Number"
+- Why? Spacing is measured in pixels (numbers)
+
+**3. Create Variables**
+- Click "Create variable"
+- Name: `primitive/spacing/xs`
+- Value: `4`
+- Unit: Leave blank (Figma assumes pixels)
+
+**4. Create Full Scale**
+
+```
+Variable Name               Value   Use Case
+primitive/spacing/xs        4       Tightest spacing
+primitive/spacing/sm        8       Small gaps
+primitive/spacing/md        16      Default spacing (most common)
+primitive/spacing/lg        24      Loose spacing
+primitive/spacing/xl        32      Large gaps
+primitive/spacing/2xl       48      Section spacing
+primitive/spacing/3xl       64      Major sections
+primitive/spacing/4xl       96      Page sections
+primitive/spacing/5xl       128     Hero sections
+```
+
+**Quick tip:** Create one variable, test it by applying it to a rectangle's padding, then create the rest once you're comfortable.
+
+---
+
+#### **Step-by-Step: Creating Typography Primitives**
+
+**1. Font Size Collection**
+- New collection: "Primitives - Typography Sizes"
+- Type: Number
+
+```
+Variable Name                       Value   CSS Equivalent
+primitive/typography/size/xs        12      0.75rem
+primitive/typography/size/sm        14      0.875rem
+primitive/typography/size/base      16      1rem (default)
+primitive/typography/size/lg        18      1.125rem
+primitive/typography/size/xl        20      1.25rem
+primitive/typography/size/2xl       24      1.5rem
+primitive/typography/size/3xl       30      1.875rem
+primitive/typography/size/4xl       36      2.25rem
+primitive/typography/size/5xl       48      3rem
+```
+
+**2. Font Weight Collection**
+- New collection: "Primitives - Typography Weights"
+- Type: Number
+
+```
+Variable Name                           Value
+primitive/typography/weight/regular     400
+primitive/typography/weight/medium      500
+primitive/typography/weight/semibold    600
+primitive/typography/weight/bold        700
+```
+
+**3. Line Height Collection**
+- New collection: "Primitives - Typography Line Heights"
+- Type: Number
+
+```
+Variable Name                               Value   Meaning
+primitive/typography/lineheight/tight       1.25    Headings
+primitive/typography/lineheight/normal      1.5     Body text (default)
+primitive/typography/lineheight/relaxed     1.75    Long-form reading
+```
+
+**How to apply typography variables:**
+- Select text layer
+- Right sidebar → Text properties
+- Click link icon next to Font size → Choose your variable
+- Repeat for line height and weight
+
+---
+
+### Step 2.3: Semantic Variables - Adding Meaning
+
+**What are Semantics?**
+These give PURPOSE to your primitives. Instead of "blue-500", you use "primary-color" or "text-default".
+
+**Why this matters:**
+```
+Primitive approach:
+- Button background: blue-500
+- Link color: blue-500
+- Badge color: blue-500
+
+Problem: If you want links to be a different color than buttons, 
+you have to find and change each one manually.
+
+Semantic approach:
+- Button background: action-primary
+- Link color: text-link  
+- Badge color: accent-primary
+
+Now: Want links different? Just change text-link variable. 
+Buttons and badges stay the same.
+```
+
+---
+
+#### **Naming Convention for Semantics**
+
+**Format:** `semantic/purpose/element/state`
+
+**Real Examples:**
+```
+semantic/background/primary          (main page background)
+semantic/background/secondary        (cards, panels)
+semantic/text/primary               (main body text)
+semantic/text/secondary             (less important text)
+semantic/border/default             (normal borders)
+semantic/border/hover               (border on hover)
+semantic/action/primary             (main action color)
+semantic/action/secondary           (secondary action)
+semantic/feedback/success           (success messages)
+semantic/feedback/error             (error messages)
+```
+
+---
+
+#### **Step-by-Step: Creating Semantic Color Variables**
+
+**1. Create Collection**
+- New collection: "Semantic - UI Colors"
+- Type: Color
+- Modes: Light, Dark (same as primitives)
+
+**2. Create Background Variables**
+
+**Variable:** `semantic/background/primary`
+- **In Figma:** Click "Create variable" → Name it
+- **Set Light mode:** Click color swatch
+  - Instead of picking a color, click "Variable" tab
+  - Select: `primitive/color/gray/50`
+  - You're now ALIASING the primitive
+- **Set Dark mode:** Click color swatch → Variable tab
+  - Select: `primitive/color/gray/900`
+
+**What just happened?**
+You created a semantic variable that POINTS TO primitive variables. When the primitive changes, semantic updates automatically!
+
+**3. Create Full Background Set**
+
+```
+Variable Name                   Light Mode Reference         Dark Mode Reference
+semantic/background/primary     primitive/color/gray/50      primitive/color/gray/900
+semantic/background/secondary   primitive/color/gray/100     primitive/color/gray/800
+semantic/background/tertiary    primitive/color/gray/200     primitive/color/gray/700
+semantic/background/elevated    primitive/color/white        primitive/color/gray/800
+semantic/background/overlay     primitive/color/gray/900     primitive/color/gray/200
+                               (at 60% opacity)            (at 80% opacity)
+```
+
+**Tip for opacity:** 
+- After selecting variable, click color swatch again
+- Adjust opacity slider
+- The variable reference stays, but opacity is applied on top
+
+---
+
+**4. Create Text Color Variables**
+
+```
+Variable Name                   Light Mode Reference         Dark Mode Reference
+semantic/text/primary           primitive/color/gray/900     primitive/color/gray/50
+semantic/text/secondary         primitive/color/gray/600     primitive/color/gray/400
+semantic/text/tertiary          primitive/color/gray/500     primitive/color/gray/500
+semantic/text/disabled          primitive/color/gray/400     primitive/color/gray/600
+semantic/text/link              primitive/color/blue/600     primitive/color/blue/400
+semantic/text/inverse           primitive/color/white        primitive/color/gray/900
+```
+
+**5. Create Border Variables**
+
+```
+Variable Name                   Light Mode Reference         Dark Mode Reference
+semantic/border/default         primitive/color/gray/200     primitive/color/gray/700
+semantic/border/strong          primitive/color/gray/300     primitive/color/gray/600
+semantic/border/hover           primitive/color/gray/400     primitive/color/gray/500
+semantic/border/focus           primitive/color/blue/500     primitive/color/blue/400
+```
+
+**6. Create Action Color Variables**
+
+```
+Variable Name                   Light Mode Reference         Dark Mode Reference
+semantic/action/primary         primitive/color/blue/600     primitive/color/blue/500
+semantic/action/primary-hover   primitive/color/blue/700     primitive/color/blue/400
+semantic/action/secondary       primitive/color/gray/600     primitive/color/gray/400
+```
+
+**7. Create Feedback Colors**
+
+```
+Variable Name                       Light Mode Reference         Dark Mode Reference
+semantic/feedback/success           primitive/color/green/600    primitive/color/green/500
+semantic/feedback/success-bg        primitive/color/green/50     primitive/color/green/900
+semantic/feedback/warning           primitive/color/yellow/600   primitive/color/yellow/500  
+semantic/feedback/warning-bg        primitive/color/yellow/50    primitive/color/yellow/900
+semantic/feedback/error             primitive/color/red/600      primitive/color/red/500
+semantic/feedback/error-bg          primitive/color/red/50       primitive/color/red/900
+semantic/feedback/info              primitive/color/blue/600     primitive/color/blue/500
+semantic/feedback/info-bg           primitive/color/blue/50      primitive/color/blue/900
+```
+
+---
+
+#### **Testing Your Semantic Variables**
+
+**Quick Test:**
+1. Create a rectangle in Figma
+2. Set fill to: `semantic/background/primary`
+3. Add text, set color to: `semantic/text/primary`
+4. Switch modes: Click variable collection → Switch between Light/Dark
+5. Watch your design update automatically!
+
+**If it works:** Your variables are properly aliased ✅
+**If it doesn't:** Check that your semantic variables point to primitives, not hard values ❌
+
+---
+
+### Step 2.4: Component-Specific Variables
+
+**What are Component Tokens?**
+Variables specific to one component type. Even more specific than semantic tokens.
+
+**Why you need them:**
+```
+Semantic tokens tell you purpose (action-primary)
+Component tokens tell you which component and what property
+
+Example:
+- semantic/action/primary = #3B82F6 (might be used many places)
+- component/button/background/default = semantic/action/primary (specific!)
+- component/input/border/default = semantic/border/default (different semantic!)
+
+Now if you want all buttons to be green but inputs stay normal, 
+you only change the button component token.
+```
+
+---
+
+#### **Naming Convention for Components**
+
+**Format:** `component/name/property/state`
+
+**Examples:**
+```
+component/button/background/default
+component/button/background/hover
+component/button/background/active
+component/button/background/disabled
+component/button/text/default
+component/button/text/hover
+component/button/border/default
+component/button/border/focus
+
+component/input/background/default
+component/input/border/default
+component/input/border/focus
+component/input/border/error
+component/input/text/default
+component/input/text/placeholder
+```
+
+---
+
+#### **Step-by-Step: Creating Button Component Tokens**
+
+**1. Create Collection**
+- New collection: "Component - Button"
+- Type: Color
+- Modes: You might not need light/dark here (inherits from semantic)
+
+**2. Create Primary Button Tokens**
+
+```
+Token Name                                  References
+component/button/primary/bg-default         semantic/action/primary
+component/button/primary/bg-hover           semantic/action/primary-hover
+component/button/primary/bg-active          semantic/action/primary-hover (slightly darker)
+component/button/primary/bg-disabled        semantic/background/tertiary
+component/button/primary/text-default       primitive/color/white
+component/button/primary/text-disabled      semantic/text/disabled
+component/button/primary/border-focus       semantic/border/focus
+```
+
+**3. Create Secondary Button Tokens**
+
+```
+Token Name                                  References
+component/button/secondary/bg-default       semantic/background/primary
+component/button/secondary/bg-hover         semantic/background/secondary
+component/button/secondary/border-default   semantic/border/default
+component/button/secondary/border-hover     semantic/border/strong
+component/button/secondary/text-default     semantic/text/primary
+```
+
+**4. Apply to Real Components**
+
+Now when you build your button component in Figma:
+- Select the button background layer
+- Set Fill → Variable → `component/button/primary/bg-default`
+- Set Stroke → Variable → `component/button/primary/border-default`
+- Select text layer
+- Set Fill → Variable → `component/button/primary/text-default`
+
+**5. Add States as Variants**
+- Create button variants: Default, Hover, Active, Disabled
+- Swap variables for each state
+- Now your button automatically adapts to light/dark mode!
+
+---
+
+### Step 2.5: Variable Organization Strategy
+
+**The Three-Layer System Explained**
+
+```
+Layer 1: PRIMITIVES (Raw values)
+├── What: Actual colors (#3B82F6), actual numbers (16px)
+├── Who edits: Design system managers only
+├── How often: Rarely (maybe once a year for rebrand)
+└── Example: primitive/color/blue/500 = #3B82F6
+
+        ↓ Referenced by ↓
+
+Layer 2: SEMANTIC (Purpose-based)
+├── What: References to primitives with meaningful names
+├── Who edits: Design system managers
+├── How often: Occasionally (quarterly adjustments)
+└── Example: semantic/text/primary = primitive/color/gray/900
+
+        ↓ Referenced by ↓
+
+Layer 3: COMPONENT (Component-specific)
+├── What: References to semantic tokens for specific components
+├── Who edits: Component designers
+├── How often: Frequently (when building/updating components)
+└── Example: component/button/text/default = semantic/text/inverse
+```
+
+---
+
+#### **Collections You Should Create**
+
+**Primitives Layer:**
+```
+📁 Primitives - Colors
+   Modes: Light, Dark
+   
+📁 Primitives - Spacing
+   Modes: Compact, Normal, Comfortable (optional)
+   
+📁 Primitives - Typography Sizes
+   
+📁 Primitives - Typography Weights
+   
+📁 Primitives - Border Radius
+   
+📁 Primitives - Shadows
+```
+
+**Semantic Layer:**
+```
+📁 Semantic - Backgrounds
+   Modes: Light, Dark
+   
+📁 Semantic - Text Colors
+   Modes: Light, Dark
+   
+📁 Semantic - Border Colors
+   Modes: Light, Dark
+   
+📁 Semantic - Action Colors
+   Modes: Light, Dark
+   
+📁 Semantic - Feedback Colors
+   Modes: Light, Dark
+```
+
+**Component Layer:**
+```
+📁 Component - Button
+📁 Component - Input
+📁 Component - Card
+📁 Component - Navigation
+📁 Component - Modal
+📁 Component - Badge
+```
+
+---
+
+---
+
+### **Checklist: Phase 2 Complete**
+
+After finishing this phase, you should have:
+
+- [ ] Primitive color variables (full scales for all colors)
+- [ ] Primitive spacing variables (8px scale)
+- [ ] Primitive typography variables (sizes, weights, line-heights)
+- [ ] Primitive sizing variables (icons, components)
+- [ ] Primitive border/radius variables
+- [ ] Semantic background color variables (point to primitives)
+- [ ] Semantic text color variables (point to primitives)
+- [ ] Semantic border variables (point to primitives)
+- [ ] Semantic action color variables (point to primitives)
+- [ ] Component-specific variables for at least one component
+- [ ] Light and Dark modes set up with different values
+- [ ] All tokens properly aliased (semantic → primitive, component → semantic)
+- [ ] Test design that switches between modes successfully
+
+---
+
+### Step 2.6: AI-Augmented Variable Creation & Naming
+
+**Goal:** Use LLMs to help create proper token hierarchies, naming conventions, and dark mode variants
+
+---
+
+#### **Complexity Level 2: Generate Semantic Token Names from Primitives**
+
+**What you have:** Primitive color variables created  
+**What you need:** Proper semantic naming that describes purpose, not appearance
+
+**Workflow:**
+
+1. **Export your primitives list:**
+```
+I have these primitive colors:
+- blue-50 through blue-900
+- gray-50 through gray-900  
+- green-50 through green-900
+- red-50 through red-900
+- yellow-50 through yellow-900
+```
+
+2. **Prompt to LLM:**
+```
+I need to create semantic color tokens for a B2B SaaS application. 
+
+My primitive colors: blue, gray, green (success), red (error), yellow (warning)
+
+Generate semantic token names for:
+1. Background colors (3-4 levels of hierarchy)
+2. Text colors (primary, secondary, tertiary, disabled, links)
+3. Border colors (default, hover, focus states)
+4. Action colors (primary, secondary actions)
+5. Feedback colors (success, warning, error, info backgrounds and text)
+
+For each semantic token:
+- Provide the name
+- Map it to the appropriate primitive
+- Explain the use case
+- Provide light mode AND dark mode mappings
+
+Output as a table:
+| Semantic Token | Light Mode | Dark Mode | Use Case |
+```
+
+3. **LLM Output Example:**
+```
+| Semantic Token | Light Mode | Dark Mode | Use Case |
+|----------------|------------|-----------|----------|
+| background/primary | gray-50 | gray-900 | Main page background |
+| background/secondary | gray-100 | gray-800 | Cards, panels, raised surfaces |
+| background/tertiary | gray-200 | gray-700 | Hover states, subtle emphasis |
+| background/inverse | gray-900 | gray-50 | Inverted sections, tooltips |
+| text/primary | gray-900 | gray-50 | Main body text, headings |
+| text/secondary | gray-600 | gray-400 | Supporting text, descriptions |
+| text/tertiary | gray-500 | gray-500 | De-emphasized text, metadata |
+| text/disabled | gray-400 | gray-600 | Disabled form fields, inactive states |
+| text/link | blue-600 | blue-400 | Hyperlinks, clickable text |
+| text/link-hover | blue-700 | blue-300 | Hovered links |
+| border/default | gray-300 | gray-700 | Standard borders, dividers |
+| border/strong | gray-400 | gray-600 | Emphasized borders |
+| border/hover | gray-500 | gray-500 | Hover state borders |
+| border/focus | blue-500 | blue-500 | Focus rings (keyboard navigation) |
+| action/primary | blue-600 | blue-500 | Primary buttons, main CTAs |
+| action/primary-hover | blue-700 | blue-400 | Primary button hover |
+| action/secondary | gray-200 | gray-700 | Secondary buttons |
+| action/secondary-hover | gray-300 | gray-600 | Secondary button hover |
+| feedback/success | green-600 | green-500 | Success messages, checkmarks |
+| feedback/success-bg | green-50 | green-900 | Success alert backgrounds |
+| feedback/warning | yellow-700 | yellow-400 | Warning text |
+| feedback/warning-bg | yellow-50 | yellow-900 | Warning alert backgrounds |
+| feedback/error | red-600 | red-400 | Error messages, validation |
+| feedback/error-bg | red-50 | red-900 | Error alert backgrounds |
+```
+
+4. **In Figma:**
+   - Create semantic collection
+   - Add Light and Dark modes
+   - Create variables with exact names from LLM output
+   - Alias to primitives as specified
+
+**Time saved:** 1-2 hours of naming decisions and dark mode mapping
+
+---
+
+#### **Complexity Level 3: Generate Component Token System**
+
+**What you have:** Semantic tokens created  
+**What you need:** Component-specific tokens for buttons, inputs, cards, etc.
+
+**Workflow:**
+
+1. **Prompt to LLM:**
+```
+I need component-specific tokens for a Button component.
+
+Available semantic tokens:
+- action/primary, action/primary-hover
+- action/secondary, action/secondary-hover
+- text/primary, text/inverse
+- border/default, border/focus
+
+Create a complete token system for:
+1. Primary button (3 variants: default, hover, active, disabled)
+2. Secondary button (all states)
+3. Ghost button (all states)
+
+For each state, specify:
+- Background color token
+- Text color token
+- Border color token (if applicable)
+
+Output as: component/button/{variant}/{property}/{state} = {semantic-token-reference}
+
+Also provide the naming rationale.
+```
+
+2. **LLM Output:**
+```
+## Button Component Tokens
+
+### Naming Convention
+Format: component/button/{variant}/{property}/{state}
+- variant: primary | secondary | ghost
+- property: background | text | border
+- state: default | hover | active | disabled
+
+### Primary Button
+
+| Token | References | Rationale |
+|-------|------------|-----------|
+| component/button/primary/background/default | action/primary | Uses main action color |
+| component/button/primary/background/hover | action/primary-hover | Darkens on interaction |
+| component/button/primary/background/active | action/primary-hover | Same as hover (keep simple) |
+| component/button/primary/background/disabled | background/tertiary | Clearly non-interactive |
+| component/button/primary/text/default | text/inverse | White text on colored bg |
+| component/button/primary/text/hover | text/inverse | Remains consistent |
+| component/button/primary/text/disabled | text/disabled | Muted disabled state |
+| component/button/primary/border/focus | border/focus | Accessible focus indicator |
+
+### Secondary Button
+
+| Token | References | Rationale |
+|-------|------------|-----------|
+| component/button/secondary/background/default | action/secondary | Subtle background |
+| component/button/secondary/background/hover | action/secondary-hover | Slight darkening |
+| component/button/secondary/background/disabled | background/primary | Blends with page |
+| component/button/secondary/text/default | text/primary | Standard text color |
+| component/button/secondary/text/hover | text/primary | Consistent |
+| component/button/secondary/text/disabled | text/disabled | Muted |
+| component/button/secondary/border/default | border/default | Defines edge |
+| component/button/secondary/border/hover | border/strong | Emphasizes on hover |
+| component/button/secondary/border/focus | border/focus | Focus ring |
+
+### Ghost Button (Transparent)
+
+| Token | References | Rationale |
+|-------|------------|-----------|
+| component/button/ghost/background/default | transparent | No background |
+| component/button/ghost/background/hover | background/secondary | Subtle hover feedback |
+| component/button/ghost/text/default | text/link | Looks interactive |
+| component/button/ghost/text/hover | text/link-hover | Darker on hover |
+| component/button/ghost/text/disabled | text/disabled | Muted |
+
+## Usage in Figma Components
+
+When building button component:
+1. Create variants: Primary, Secondary, Ghost
+2. Create states: Default, Hover, Active, Disabled
+3. Apply tokens to each variant/state combination
+4. Tokens automatically adapt to light/dark mode
+```
+
+3. **In Figma:**
+   - Create "Component - Button" collection
+   - Create all variables as specified
+   - Build button component with variants
+   - Apply tokens to layers
+   - Test mode switching
+
+**Time saved:** 2-3 hours per component of token planning
+
+---
+
+#### **Complexity Level 4: Validate Token Hierarchy and Find Issues**
+
+**What you have:** Variables created but worried about mistakes  
+**What you need:** Validation that your system is consistent and complete
+
+**Workflow:**
+
+1. **Export your variable structure:**
+   - Figma → Variables → (manually note structure)
+   - Or use Figma API to export JSON
+
+2. **Prompt to LLM:**
+```
+Here is my design token structure. Please analyze for issues:
+
+PRIMITIVES:
+- color/blue/50-900
+- color/gray/50-900
+- color/green/50-900
+- color/red/50-900
+- spacing/xs through spacing/4xl
+
+SEMANTIC:
+- background/primary → gray-50 (light), gray-900 (dark)
+- background/secondary → gray-100 (light), gray-800 (dark)
+- text/primary → gray-900 (light), gray-50 (dark)
+- text/secondary → gray-600 (light), gray-400 (dark)
+- action/primary → blue-600 (light), blue-500 (dark)
+
+COMPONENT:
+- component/button/primary/background/default → action/primary
+- component/button/primary/text/default → text/inverse
+
+CHECK FOR:
+1. Naming consistency (do all follow same pattern?)
+2. Missing tokens (common use cases not covered?)
+3. Circular references (token pointing to itself indirectly?)
+4. Semantic gaps (primitive → semantic → component chain complete?)
+5. Dark mode coverage (all semantics have both modes?)
+6. Accessibility issues (contrast problems?)
+7. Redundancy (two tokens doing same job?)
+
+Provide specific recommendations for fixes.
+```
+
+3. **LLM Output Example:**
+```
+## Analysis Results
+
+### ✅ GOOD:
+- Consistent naming (slash-separated paths)
+- Clear hierarchy (primitive → semantic → component)
+- Dark mode mappings exist
+
+### ⚠️ ISSUES FOUND:
+
+**Issue 1: Missing border semantic tokens**
+Problem: You have component/button tokens but no semantic border tokens for them to reference
+Impact: Buttons can't have consistent borders across components
+Fix: Add these semantic tokens:
+- border/default → gray-300 (light), gray-700 (dark)
+- border/strong → gray-400 (light), gray-600 (dark)
+- border/focus → blue-500 (both modes)
+
+**Issue 2: Inconsistent naming - action vs button**
+Problem: You have "action/primary" but "component/button/primary"
+- Are actions and buttons the same thing?
+- If yes: component/button should reference action/primary (good)
+- If no: Why is there an action token without a component using it?
+Current: Seems okay, but clarify naming intent
+
+**Issue 3: Missing text/inverse semantic token**
+Problem: component/button/primary/text/default references "text/inverse" which isn't in your semantic list
+Impact: Token chain is broken
+Fix: Add to semantic layer:
+- text/inverse → white (light), gray-900 (dark)
+
+**Issue 4: Spacing tokens not used**
+Problem: spacing/xs through spacing/4xl defined but not referenced by component tokens
+Impact: Buttons won't have consistent padding
+Fix: Add component spacing tokens:
+- component/button/padding/horizontal → spacing/md
+- component/button/padding/vertical → spacing/sm
+- component/button/gap → spacing/xs
+
+**Issue 5: Missing disabled state borders**
+Problem: component/button/secondary needs border for disabled state
+Current: Only has background and text for disabled
+Fix: Add:
+- component/button/secondary/border/disabled → border/default
+
+### 📊 COVERAGE ANALYSIS:
+
+Primitives: ✅ Complete
+Semantic: ⚠️ 70% complete (missing borders, inverse text)
+Component: ⚠️ 60% complete (missing spacing, some state variations)
+
+### 🎯 RECOMMENDATIONS:
+
+Priority 1 (Broken References):
+1. Add text/inverse semantic token
+2. Add border semantic tokens
+
+Priority 2 (Missing Functionality):
+3. Add spacing tokens for button padding
+4. Add disabled state borders
+
+Priority 3 (Nice to Have):
+5. Consider success/warning/error button variants
+6. Add focus-visible state (different from focus)
+```
+
+4. **Back to Figma:**
+   - Add missing tokens identified
+   - Fix broken references
+   - Re-test components
+
+**Time saved:** 3-4 hours of manual token review
+
+---
+
+#### **Complexity Level 5: Generate Complete Variable System from Scratch with AI Planning**
+
+**What you have:** Nothing yet - starting fresh  
+**What you need:** Complete, well-structured token system ready to implement
+
+**Workflow:**
+
+1. **Initial Planning Prompt:**
+```
+I'm creating a design system from scratch for a [product type]. 
+
+Help me plan the complete variable/token structure including:
+1. What primitive collections I need
+2. What semantic collections I need
+3. What component collections I need
+4. How they should reference each other
+5. Naming conventions for consistency
+6. Mode strategy (light/dark, other modes?)
+
+Product context:
+- Type: B2B SaaS web application
+- Platform: Desktop-first, mobile responsive
+- Users: Technical professionals
+- Brand: Modern, professional, approachable
+- Accessibility: WCAG 2.1 AA required
+
+Output as a structured implementation plan I can follow step-by-step in Figma.
+```
+
+2. **LLM Planning Output:**
+```
+# Complete Token System Plan
+
+## Overview
+For a B2B SaaS application, you need a 3-tier token system with light/dark modes.
+
+## Tier 1: Primitive Collections
+
+### Collection: Primitives - Colors
+Purpose: Raw color values only
+Modes: Light, Dark (values differ per mode)
+
+Variables to create:
+- primitive/color/brand/50 through /900 (your primary brand color scale)
+- primitive/color/gray/50 through /900 (neutral scale)
+- primitive/color/green/50 through /900 (success states)
+- primitive/color/red/50 through /900 (error states)
+- primitive/color/yellow/50 through /900 (warning states)
+- primitive/color/blue/50 through /900 (info states, if different from brand)
+
+Note: In Dark mode, flip the scale (50↔900, 100↔800, etc.)
+
+### Collection: Primitives - Spacing
+Purpose: All spacing values
+Modes: Single mode (values don't change in dark mode)
+
+Variables to create:
+- primitive/spacing/3xs: 2
+- primitive/spacing/2xs: 4
+- primitive/spacing/xs: 8 (base unit)
+- primitive/spacing/sm: 12
+- primitive/spacing/md: 16 (default gap)
+- primitive/spacing/lg: 24
+- primitive/spacing/xl: 32
+- primitive/spacing/2xl: 48
+- primitive/spacing/3xl: 64
+- primitive/spacing/4xl: 96
+
+### Collection: Primitives - Typography Sizes
+Purpose: Font size values
+Modes: Could have Desktop/Mobile modes for responsive
+
+Variables to create:
+- primitive/typography/size/xs: 12
+- primitive/typography/size/sm: 14
+- primitive/typography/size/base: 16
+- primitive/typography/size/lg: 20
+- primitive/typography/size/xl: 24
+- primitive/typography/size/2xl: 30
+- primitive/typography/size/3xl: 36
+- primitive/typography/size/4xl: 48
+
+### Collection: Primitives - Typography Weights
+- primitive/typography/weight/regular: 400
+- primitive/typography/weight/medium: 500
+- primitive/typography/weight/semibold: 600
+- primitive/typography/weight/bold: 700
+
+### Collection: Primitives - Border Radius
+- primitive/radius/none: 0
+- primitive/radius/sm: 4
+- primitive/radius/md: 8 (default)
+- primitive/radius/lg: 12
+- primitive/radius/xl: 16
+- primitive/radius/full: 9999
+
+### Collection: Primitives - Shadows
+Type: String (will contain shadow values)
+- primitive/shadow/xs: "0 1px 2px rgba(0,0,0,0.05)"
+- primitive/shadow/sm: "0 2px 4px rgba(0,0,0,0.1)"
+- primitive/shadow/md: "0 4px 6px rgba(0,0,0,0.1)"
+- primitive/shadow/lg: "0 10px 15px rgba(0,0,0,0.1)"
+- primitive/shadow/xl: "0 20px 25px rgba(0,0,0,0.15)"
+
+## Tier 2: Semantic Collections
+
+### Collection: Semantic - Backgrounds
+Purpose: Background colors by purpose
+Modes: Light, Dark
+All variables REFERENCE primitives (don't use hard values)
+
+Variables to create:
+- semantic/background/primary → primitive/color/gray/50 (L), primitive/color/gray/900 (D)
+- semantic/background/secondary → primitive/color/gray/100 (L), primitive/color/gray/800 (D)
+- semantic/background/tertiary → primitive/color/gray/200 (L), primitive/color/gray/700 (D)
+- semantic/background/inverse → primitive/color/gray/900 (L), primitive/color/gray/50 (D)
+- semantic/background/elevated → primitive/color/white (L), primitive/color/gray/800 (D)
+
+### Collection: Semantic - Text
+Modes: Light, Dark
+
+- semantic/text/primary → primitive/color/gray/900 (L), primitive/color/gray/50 (D)
+- semantic/text/secondary → primitive/color/gray/600 (L), primitive/color/gray/400 (D)
+- semantic/text/tertiary → primitive/color/gray/500 (L), primitive/color/gray/500 (D)
+- semantic/text/disabled → primitive/color/gray/400 (L), primitive/color/gray/600 (D)
+- semantic/text/inverse → primitive/color/white (L), primitive/color/gray/900 (D)
+- semantic/text/link → primitive/color/brand/600 (L), primitive/color/brand/400 (D)
+- semantic/text/link-hover → primitive/color/brand/700 (L), primitive/color/brand/300 (D)
+
+### Collection: Semantic - Borders
+Modes: Light, Dark
+
+- semantic/border/default → primitive/color/gray/300 (L), primitive/color/gray/700 (D)
+- semantic/border/strong → primitive/color/gray/400 (L), primitive/color/gray/600 (D)
+- semantic/border/hover → primitive/color/gray/500 (L), primitive/color/gray/500 (D)
+- semantic/border/focus → primitive/color/brand/500 (both modes)
+
+### Collection: Semantic - Actions
+Modes: Light, Dark
+
+- semantic/action/primary → primitive/color/brand/600 (L), primitive/color/brand/500 (D)
+- semantic/action/primary-hover → primitive/color/brand/700 (L), primitive/color/brand/400 (D)
+- semantic/action/secondary → primitive/color/gray/200 (L), primitive/color/gray/700 (D)
+- semantic/action/secondary-hover → primitive/color/gray/300 (L), primitive/color/gray/600 (D)
+
+### Collection: Semantic - Feedback
+Modes: Light, Dark
+
+- semantic/feedback/success → primitive/color/green/600 (L), primitive/color/green/500 (D)
+- semantic/feedback/success-bg → primitive/color/green/50 (L), primitive/color/green/900 (D)
+- semantic/feedback/warning → primitive/color/yellow/700 (L), primitive/color/yellow/400 (D)
+- semantic/feedback/warning-bg → primitive/color/yellow/50 (L), primitive/color/yellow/900 (D)
+- semantic/feedback/error → primitive/color/red/600 (L), primitive/color/red/500 (D)
+- semantic/feedback/error-bg → primitive/color/red/50 (L), primitive/color/red/900 (D)
+- semantic/feedback/info → primitive/color/blue/600 (L), primitive/color/blue/500 (D)
+- semantic/feedback/info-bg → primitive/color/blue/50 (L), primitive/color/blue/900 (D)
+
+## Tier 3: Component Collections
+
+### Collection: Component - Button
+Purpose: Button-specific tokens
+Modes: Can be single mode (inherits light/dark from semantic)
+
+Variables (all reference semantic):
+- component/button/primary/background/default → semantic/action/primary
+- component/button/primary/background/hover → semantic/action/primary-hover
+- component/button/primary/background/disabled → semantic/background/tertiary
+- component/button/primary/text/default → semantic/text/inverse
+- component/button/primary/text/disabled → semantic/text/disabled
+- component/button/primary/border/focus → semantic/border/focus
+- component/button/padding/horizontal → primitive/spacing/lg
+- component/button/padding/vertical → primitive/spacing/sm
+- component/button/radius → primitive/radius/md
+
+(Repeat for secondary, ghost variants)
+
+### Collection: Component - Input
+- component/input/background/default → semantic/background/primary
+- component/input/background/disabled → semantic/background/secondary
+- component/input/border/default → semantic/border/default
+- component/input/border/hover → semantic/border/hover
+- component/input/border/focus → semantic/border/focus
+- component/input/border/error → semantic/feedback/error
+- component/input/text/default → semantic/text/primary
+- component/input/text/placeholder → semantic/text/tertiary
+- component/input/padding/horizontal → primitive/spacing/md
+- component/input/padding/vertical → primitive/spacing/sm
+- component/input/radius → primitive/radius/md
+
+### Collection: Component - Card
+- component/card/background → semantic/background/secondary
+- component/card/border → semantic/border/default
+- component/card/padding → primitive/spacing/lg
+- component/card/gap → primitive/spacing/md
+- component/card/radius → primitive/radius/lg
+- component/card/shadow → primitive/shadow/md
+
+## Implementation Steps
+
+### Week 1: Primitives
+Day 1-2: Create all primitive collections
+Day 3: Create color scales for all colors
+Day 4: Create spacing, typography, radius primitives
+Day 5: Test primitives with simple shapes
+
+### Week 2: Semantic
+Day 1: Create semantic background colors
+Day 2: Create semantic text colors
+Day 3: Create semantic borders, actions, feedback
+Day 4-5: Test semantic tokens, ensure proper aliasing
+
+### Week 3: Components
+Day 1: Create button component tokens
+Day 2: Create input component tokens
+Day 3: Create card component tokens
+Day 4-5: Build actual components using tokens, test mode switching
+
+## Validation Checklist
+- [ ] All semantic tokens reference primitives (no hard values)
+- [ ] All component tokens reference semantic (no primitives directly)
+- [ ] Every semantic color has light AND dark mode values
+- [ ] Dark mode inverts appropriately (light bgs become dark)
+- [ ] Test component works in both light and dark mode
+- [ ] Naming is consistent across all collections
+- [ ] No circular references (token referencing itself)
+```
+
+3. **Implementation in Figma:**
+   - Follow the plan step-by-step
+   - Create one collection at a time
+   - Test each tier before moving to next
+   - Use LLM for troubleshooting: "My button in dark mode looks wrong, here's my token setup..."
+
+**Time saved:** 2-3 weeks of planning and trial-and-error
+
+---
+
+### **AI Validation Prompts**
+
+**After creating variables, validate with:**
+
+```
+I've created my design tokens. Can you check if this makes sense?
+
+QUESTION 1: Aliasing
+Is this correct: component/button/text → semantic/text/inverse → primitive/color/white
+Or should it be: component/button/text → primitive/color/white directly?
+
+QUESTION 2: Dark Mode
+For dark mode, should I:
+A) Change primitive values (blue-500 = different color in dark mode)
+B) Change semantic mappings (text/primary points to different primitive in dark mode)
+C) Both
+
+QUESTION 3: Naming
+Which is better:
+- semantic/text/primary or semantic/color/text/primary
+- component/button/primary/text or component/button/text/primary
+
+Explain the reasoning.
+```
+
+**Quick tip:** Use LLM to generate a "token dependency map" showing which tokens reference which. This helps visualize your hierarchy and spot issues.
+
+**What's Next:** Phase 3 - Building actual components using these variables!
+
+---
+
+## AI-Augmented Design System Building
+
+**What is AI-Augmented Design?**
+Instead of building your entire design system manually from scratch, you start with what you have in Figma and use LLMs to identify gaps, suggest completions, and generate missing pieces. This approach combines human design intuition with AI's pattern recognition and systematic thinking.
+
+**How This Works:**
+1. You create initial visual designs in Figma (buttons, cards, a few screens)
+2. You export/describe what you have to an LLM
+3. The LLM analyzes your designs and identifies missing tokens, inconsistencies, and gaps
+4. The LLM generates recommendations to complete your system
+5. You implement the suggestions in Figma
+
+---
+
+### Use Case 1: Analyzing Existing Designs (Complexity: ⭐)
+
+**Scenario:** You have 5-10 screens designed in Figma but no formal design system yet.
+
+**What You Have:**
+- A few app screens with various buttons, inputs, cards
+- Colors used inconsistently
+- Random spacing values
+- No variables set up
+
+**Goal:** Extract patterns and identify what tokens you need.
+
+---
+
+#### **Step-by-Step Workflow:**
+
+**1. Export Visual Context**
+
+Take screenshots of your key screens:
+```bash
+# Save these from Figma
+- homepage.png
+- dashboard.png
+- settings.png
+- modal-example.png
+```
+
+**2. Describe Your Designs to LLM**
+
+Using MCP or direct prompt:
+
+```
+I have 5 app screens designed in Figma. Help me identify the design tokens I need to create a system.
+
+[Attach screenshots or share Figma link via MCP]
+
+Current observations:
+- I see buttons in these colors: #3B82F6, #2563EB, #1D4ED8
+- Spacing seems random: 8px, 12px, 14px, 16px, 20px, 24px
+- Text sizes: 12px, 14px, 15px, 16px, 18px, 24px
+
+Please:
+1. Identify color patterns and suggest a color scale
+2. Recommend a spacing scale that fits my usage
+3. Suggest a typography scale
+4. Point out inconsistencies
+5. Tell me what's missing for a complete system
+```
+
+**3. LLM Analysis Output Example**
+
+```
+ANALYSIS OF YOUR DESIGNS:
+
+COLOR PATTERNS:
+- Primary Blue: You're using 3 shades (#3B82F6, #2563EB, #1D4ED8)
+- These map to blue-500, blue-600, blue-700 in standard scale
+- Missing: Lighter blues (50-400) for backgrounds, hover states
+- Missing: Darker blues (800-900) for text, dark mode
+- Recommendation: Complete the full blue-50 through blue-900 scale
+
+SPACING INCONSISTENCIES:
+- Current values: 8, 12, 14, 16, 20, 24
+- Problem: 12px and 14px don't fit 8px system, 20px is odd
+- Recommended scale: 4, 8, 16, 24, 32, 48, 64
+- Replace 12px → 8px or 16px
+- Replace 14px → 16px
+- Replace 20px → 16px or 24px
+
+TYPOGRAPHY ISSUES:
+- Current: 12, 14, 15, 16, 18, 24
+- Problem: 15px doesn't fit any standard scale
+- Recommended scale: 12, 14, 16, 18, 20, 24, 30, 36
+- Replace 15px → 16px
+
+WHAT'S MISSING:
+- [ ] Error/Success/Warning colors (you only have blue)
+- [ ] Gray scale for backgrounds and borders
+- [ ] Dark mode color variants
+- [ ] Semantic token layer (background-primary, text-primary, etc.)
+- [ ] Component-specific tokens
+- [ ] Border radius values (currently inconsistent: 4px, 6px, 8px)
+- [ ] Shadow/elevation system
+```
+
+**4. Implement in Figma**
+
+Follow the LLM's recommendations:
+- Create the complete blue scale (blue-50 through blue-900)
+- Add missing color scales (gray, green for success, red for error)
+- Standardize spacing to the 8px system
+- Create variables for each token
+
+**Expected Time:** 2-3 hours
+**Value:** Turns chaos into order, identifies gaps you didn't know existed
+
+---
+
+### Use Case 2: Completing Primitive Scales (Complexity: ⭐⭐)
+
+**Scenario:** You have some colors and sizes defined but need complete, harmonious scales.
+
+**What You Have:**
+- Brand color: #3B82F6 (blue)
+- Secondary color: #10B981 (green)
+- A few spacing values: 8px, 16px, 24px
+- No complete scales
+
+**Goal:** Generate full, mathematically consistent scales.
+
+---
+
+#### **Step-by-Step Workflow:**
+
+**1. Provide Your Base Values to LLM**
+
+```
+I need to create complete primitive scales for my design system.
+
+BASE VALUES:
+- Brand blue: #3B82F6
+- Secondary green: #10B981
+- Accent orange: #F59E0B
+- Base spacing: 8px
+- Base font size: 16px
+
+Generate complete scales for:
+1. Colors (50-900 for each color family)
+2. Spacing (following 8px system, from 4px to 128px)
+3. Typography sizes (12px to 60px, 1.25 ratio)
+4. Border radius (0px to 24px + full)
+
+Output as Figma variable names and values.
+```
+
+**2. LLM Generates Complete Scales**
+
+```json
+{
+  "primitives": {
+    "colors": {
+      "blue": {
+        "50": { "value": "#EFF6FF", "usage": "Backgrounds, subtle accents" },
+        "100": { "value": "#DBEAFE", "usage": "Hover states, light backgrounds" },
+        "200": { "value": "#BFDBFE", "usage": "Borders, disabled states" },
+        "300": { "value": "#93C5FD", "usage": "Borders, subtle interactions" },
+        "400": { "value": "#60A5FA", "usage": "Secondary buttons" },
+        "500": { "value": "#3B82F6", "usage": "PRIMARY - main brand color" },
+        "600": { "value": "#2563EB", "usage": "Hover states, pressed" },
+        "700": { "value": "#1D4ED8", "usage": "Active states, emphasis" },
+        "800": { "value": "#1E40AF", "usage": "Text on light backgrounds" },
+        "900": { "value": "#1E3A8A", "usage": "Headers, maximum contrast" }
+      },
+      "gray": {
+        "50": { "value": "#F9FAFB", "generated": true },
+        "100": { "value": "#F3F4F6", "generated": true },
+        "200": { "value": "#E5E7EB", "generated": true },
+        "300": { "value": "#D1D5DB", "generated": true },
+        "400": { "value": "#9CA3AF", "generated": true },
+        "500": { "value": "#6B7280", "generated": true },
+        "600": { "value": "#4B5563", "generated": true },
+        "700": { "value": "#374151", "generated": true },
+        "800": { "value": "#1F2937", "generated": true },
+        "900": { "value": "#111827", "generated": true }
+      },
+      "green": {
+        "50": { "value": "#ECFDF5", "generated": true },
+        "100": { "value": "#D1FAE5", "generated": true },
+        "500": { "value": "#10B981", "provided": true },
+        "600": { "value": "#059669", "generated": true },
+        "900": { "value": "#064E3B", "generated": true }
+      }
+    },
+    "spacing": {
+      "xs": { "value": 4, "multiplier": "0.5x" },
+      "sm": { "value": 8, "multiplier": "1x - BASE" },
+      "md": { "value": 16, "multiplier": "2x" },
+      "lg": { "value": 24, "multiplier": "3x" },
+      "xl": { "value": 32, "multiplier": "4x" },
+      "2xl": { "value": 48, "multiplier": "6x" },
+      "3xl": { "value": 64, "multiplier": "8x" },
+      "4xl": { "value": 96, "multiplier": "12x" },
+      "5xl": { "value": 128, "multiplier": "16x" }
+    },
+    "typography": {
+      "sizes": {
+        "xs": { "value": 12, "rem": "0.75rem" },
+        "sm": { "value": 14, "rem": "0.875rem" },
+        "base": { "value": 16, "rem": "1rem - BASE" },
+        "lg": { "value": 18, "rem": "1.125rem" },
+        "xl": { "value": 20, "rem": "1.25rem" },
+        "2xl": { "value": 24, "rem": "1.5rem" },
+        "3xl": { "value": 30, "rem": "1.875rem" },
+        "4xl": { "value": 36, "rem": "2.25rem" },
+        "5xl": { "value": 48, "rem": "3rem" },
+        "6xl": { "value": 60, "rem": "3.75rem" }
+      }
+    },
+    "radius": {
+      "none": 0,
+      "sm": 2,
+      "DEFAULT": 4,
+      "md": 8,
+      "lg": 12,
+      "xl": 16,
+      "2xl": 24,
+      "full": 9999
+    }
+  }
+}
+```
+
+**3. Create Variables in Figma**
+
+The LLM gave you exact names and values. Now create them:
+
+```
+In Figma Variables panel:
+1. Create collection: "Primitives - Colors - Blue"
+2. For each color in JSON:
+   - Create variable: primitive/color/blue/50
+   - Set value: #EFF6FF
+   - Add description: "Backgrounds, subtle accents"
+3. Repeat for all colors, spacing, typography, radius
+```
+
+**4. Validate the Scale**
+
+Ask the LLM to check:
+
+```
+Review this color scale for accessibility and consistency:
+[Paste your completed scale]
+
+Check:
+1. Does adjacent colors have enough contrast difference?
+2. Are there any accessibility issues?
+3. Does the scale feel harmonious?
+4. Should any values be adjusted?
+```
+
+**Expected Time:** 1-2 hours
+**Value:** Complete, professional scales without manual calculation
+
+---
+
+### Use Case 3: Generating Semantic Tokens (Complexity: ⭐⭐⭐)
+
+**Scenario:** You have primitives but need meaningful semantic names.
+
+**What You Have:**
+- Complete primitive color scales (blue, gray, green, red)
+- Complete spacing scale
+- Typography scale
+
+**Goal:** Create semantic tokens that map primitives to purposes, support light/dark modes.
+
+---
+
+#### **Step-by-Step Workflow:**
+
+**1. Provide Context to LLM**
+
+```
+I have complete primitive tokens. Now I need to create semantic tokens that:
+- Map primitives to purposes (background-primary, text-secondary, etc.)
+- Support light and dark modes
+- Cover all use cases in my app
+
+MY APP CONTEXT:
+- SaaS dashboard application
+- Needs: backgrounds, text colors, borders, actions, feedback states
+- Must support: light mode (default) and dark mode
+- Brand is professional and trustworthy (finance industry)
+
+MY PRIMITIVE TOKENS:
+Colors: blue (50-900), gray (50-900), green (50-900), red (50-900), yellow (50-900)
+Spacing: 4, 8, 16, 24, 32, 48, 64, 96, 128
+Typography: 12, 14, 16, 18, 20, 24, 30, 36, 48, 60
+
+Generate semantic token structure with:
+1. Complete naming convention
+2. Light mode mappings
+3. Dark mode mappings
+4. Usage guidelines for each token
+```
+
+**2. LLM Generates Semantic System**
+
+```json
+{
+  "semantic": {
+    "background": {
+      "primary": {
+        "light": "primitive/color/gray/50",
+        "dark": "primitive/color/gray/900",
+        "usage": "Main page background, canvas",
+        "wcag": "Base layer for all content"
+      },
+      "secondary": {
+        "light": "primitive/color/gray/100",
+        "dark": "primitive/color/gray/800",
+        "usage": "Cards, panels, sections",
+        "wcag": "Should have subtle contrast with primary"
+      },
+      "tertiary": {
+        "light": "primitive/color/gray/200",
+        "dark": "primitive/color/gray/700",
+        "usage": "Nested cards, table rows",
+        "wcag": "Third level of elevation"
+      },
+      "elevated": {
+        "light": "primitive/color/white",
+        "dark": "primitive/color/gray/800",
+        "usage": "Modals, dropdowns, tooltips",
+        "shadow": "Use with elevation shadows"
+      },
+      "overlay": {
+        "light": "primitive/color/gray/900 @ 60%",
+        "dark": "primitive/color/gray/900 @ 80%",
+        "usage": "Modal backdrop, overlay",
+        "note": "Semi-transparent"
+      }
+    },
+    "text": {
+      "primary": {
+        "light": "primitive/color/gray/900",
+        "dark": "primitive/color/gray/50",
+        "usage": "Main body text, headings",
+        "wcag": "Must meet 4.5:1 contrast on primary background",
+        "contrast": "AAA compliant"
+      },
+      "secondary": {
+        "light": "primitive/color/gray/600",
+        "dark": "primitive/color/gray/400",
+        "usage": "Supporting text, descriptions",
+        "wcag": "Must meet 4.5:1 contrast",
+        "contrast": "AA compliant"
+      },
+      "tertiary": {
+        "light": "primitive/color/gray/500",
+        "dark": "primitive/color/gray/500",
+        "usage": "Placeholder text, hints",
+        "wcag": "3:1 minimum for non-essential text"
+      },
+      "disabled": {
+        "light": "primitive/color/gray/400",
+        "dark": "primitive/color/gray/600",
+        "usage": "Disabled form inputs, inactive text",
+        "note": "Should appear clearly non-interactive"
+      },
+      "link": {
+        "light": "primitive/color/blue/600",
+        "dark": "primitive/color/blue/400",
+        "usage": "Hyperlinks, clickable text",
+        "state": "Has hover/active states"
+      },
+      "inverse": {
+        "light": "primitive/color/white",
+        "dark": "primitive/color/gray/900",
+        "usage": "Text on dark buttons, dark backgrounds",
+        "wcag": "Use when background is dark"
+      }
+    },
+    "border": {
+      "default": {
+        "light": "primitive/color/gray/200",
+        "dark": "primitive/color/gray/700",
+        "usage": "Standard borders, dividers",
+        "width": "1px"
+      },
+      "strong": {
+        "light": "primitive/color/gray/300",
+        "dark": "primitive/color/gray/600",
+        "usage": "Emphasized borders, table borders",
+        "width": "1-2px"
+      },
+      "hover": {
+        "light": "primitive/color/gray/400",
+        "dark": "primitive/color/gray/500",
+        "usage": "Hover state for inputs, buttons",
+        "interaction": "Interactive elements only"
+      },
+      "focus": {
+        "light": "primitive/color/blue/500",
+        "dark": "primitive/color/blue/400",
+        "usage": "Focus rings, keyboard navigation",
+        "width": "2px",
+        "accessibility": "Required for keyboard users"
+      },
+      "error": {
+        "light": "primitive/color/red/500",
+        "dark": "primitive/color/red/400",
+        "usage": "Form validation errors",
+        "pair": "Use with feedback/error"
+      }
+    },
+    "action": {
+      "primary": {
+        "light": "primitive/color/blue/600",
+        "dark": "primitive/color/blue/500",
+        "usage": "Primary buttons, main CTAs",
+        "limit": "One per screen section"
+      },
+      "primary-hover": {
+        "light": "primitive/color/blue/700",
+        "dark": "primitive/color/blue/400",
+        "usage": "Primary button hover state",
+        "interaction": "Hover and press"
+      },
+      "secondary": {
+        "light": "primitive/color/gray/100",
+        "dark": "primitive/color/gray/700",
+        "usage": "Secondary buttons, alternate actions",
+        "note": "Uses border for definition"
+      }
+    },
+    "feedback": {
+      "success": {
+        "light": "primitive/color/green/600",
+        "dark": "primitive/color/green/500",
+        "usage": "Success messages, positive feedback",
+        "icon": "Checkmark, success icons"
+      },
+      "success-bg": {
+        "light": "primitive/color/green/50",
+        "dark": "primitive/color/green/900 @ 20%",
+        "usage": "Success alert backgrounds",
+        "pair": "Use with feedback/success text"
+      },
+      "warning": {
+        "light": "primitive/color/yellow/600",
+        "dark": "primitive/color/yellow/500",
+        "usage": "Warning messages, cautionary",
+        "icon": "Alert triangle"
+      },
+      "warning-bg": {
+        "light": "primitive/color/yellow/50",
+        "dark": "primitive/color/yellow/900 @ 20%",
+        "usage": "Warning alert backgrounds"
+      },
+      "error": {
+        "light": "primitive/color/red/600",
+        "dark": "primitive/color/red/500",
+        "usage": "Error messages, destructive actions",
+        "validation": "Form errors"
+      },
+      "error-bg": {
+        "light": "primitive/color/red/50",
+        "dark": "primitive/color/red/900 @ 20%",
+        "usage": "Error alert backgrounds"
+      },
+      "info": {
+        "light": "primitive/color/blue/600",
+        "dark": "primitive/color/blue/500",
+        "usage": "Informational messages",
+        "icon": "Info icon"
+      },
+      "info-bg": {
+        "light": "primitive/color/blue/50",
+        "dark": "primitive/color/blue/900 @ 20%",
+        "usage": "Info alert backgrounds"
+      }
+    }
+  },
+  "usage_guidelines": {
+    "backgrounds": "Always start with background/primary as base, layer secondary and tertiary for depth",
+    "text": "Use primary for all body text, secondary for supporting content, tertiary for hints only",
+    "feedback": "Always pair feedback colors with their background variants for accessible contrast",
+    "actions": "Primary actions should be rare and prominent, secondary for alternative actions"
+  }
+}
+```
+
+**3. Create Semantic Variables in Figma**
+
+```
+In Figma:
+1. Create collection: "Semantic - Backgrounds"
+2. Add modes: Light, Dark
+3. Create variable: semantic/background/primary
+   - Light mode: Link to primitive/color/gray/50
+   - Dark mode: Link to primitive/color/gray/900
+4. Repeat for all semantic tokens
+5. Test by switching between Light/Dark modes
+```
+
+**4. Validate Accessibility**
+
+```
+Review these semantic tokens for WCAG AA compliance:
+
+Background: semantic/background/primary (gray-50 light, gray-900 dark)
+Text: semantic/text/primary (gray-900 light, gray-50 dark)
+
+Check all text/background combinations meet 4.5:1 contrast.
+Flag any issues.
+```
+
+**Expected Time:** 3-4 hours
+**Value:** Complete semantic layer that supports theming and ensures accessibility
+
+---
+
+### Use Case 4: Identifying Component Token Needs (Complexity: ⭐⭐⭐⭐)
+
+**Scenario:** You have primitives and semantics, now need component-specific tokens.
+
+**What You Have:**
+- Complete primitive scales
+- Complete semantic tokens
+- A few components built in Figma (Button, Input, Card)
+
+**Goal:** Extract component-specific tokens and ensure consistency.
+
+---
+
+#### **Step-by-Step Workflow:**
+
+**1. Document Your Components**
+
+```
+I need help creating component-specific tokens.
+
+COMPONENTS I HAVE:
+1. Button (Primary, Secondary, Ghost variants)
+2. Input field
+3. Card component
+4. Badge/Tag
+
+For each component, I need:
+- Background colors for all states
+- Text colors for all states
+- Border colors for all states
+- Padding/spacing values
+- Border radius
+- States: default, hover, active, focus, disabled
+
+CURRENT SEMANTIC TOKENS AVAILABLE:
+[Paste your semantic token structure or provide via MCP]
+
+Generate component token structure that:
+1. References semantic tokens where appropriate
+2. Provides specific tokens for unique component needs
+3. Ensures consistency across variants
+4. Supports all interaction states
+```
+
+**2. LLM Generates Component Tokens**
+
+```json
+{
+  "components": {
+    "button": {
+      "primary": {
+        "background": {
+          "default": {
+            "value": "semantic/action/primary",
+            "fallback": "primitive/color/blue/600"
+          },
+          "hover": {
+            "value": "semantic/action/primary-hover",
+            "fallback": "primitive/color/blue/700"
+          },
+          "active": {
+            "value": "primitive/color/blue/800",
+            "note": "Pressed state, darker than hover"
+          },
+          "disabled": {
+            "value": "semantic/background/tertiary",
+            "opacity": 0.5
+          }
+        },
+        "text": {
+          "default": {
+            "value": "semantic/text/inverse",
+            "wcag": "White text on blue background"
+          },
+          "disabled": {
+            "value": "semantic/text/disabled"
+          }
+        },
+        "border": {
+          "focus": {
+            "value": "semantic/border/focus",
+            "width": "2px",
+            "offset": "2px",
+            "accessibility": "Keyboard focus indicator"
+          }
+        }
+      },
+      "secondary": {
+        "background": {
+          "default": {
+            "value": "semantic/background/primary",
+            "note": "Transparent/background color"
+          },
+          "hover": {
+            "value": "semantic/background/secondary",
+            "note": "Slight background on hover"
+          },
+          "active": {
+            "value": "semantic/background/tertiary"
+          },
+          "disabled": {
+            "value": "semantic/background/primary",
+            "opacity": 0.5
+          }
+        },
+        "text": {
+          "default": {
+            "value": "semantic/text/primary"
+          },
+          "hover": {
+            "value": "semantic/action/primary"
+          },
+          "disabled": {
+            "value": "semantic/text/disabled"
+          }
+        },
+        "border": {
+          "default": {
+            "value": "semantic/border/default",
+            "width": "1px"
+          },
+          "hover": {
+            "value": "semantic/border/strong",
+            "width": "1px"
+          },
+          "focus": {
+            "value": "semantic/border/focus",
+            "width": "2px",
+            "offset": "2px"
+          }
+        }
+      },
+      "spacing": {
+        "padding-y": {
+          "sm": "primitive/spacing/xs (4px)",
+          "md": "primitive/spacing/sm (8px)",
+          "lg": "primitive/spacing/md (16px)"
+        },
+        "padding-x": {
+          "sm": "primitive/spacing/sm (8px)",
+          "md": "primitive/spacing/md (16px)",
+          "lg": "primitive/spacing/lg (24px)"
+        },
+        "gap": {
+          "icon-text": "primitive/spacing/sm (8px)"
+        }
+      },
+      "typography": {
+        "size": {
+          "sm": "primitive/typography/size/sm (14px)",
+          "md": "primitive/typography/size/base (16px)",
+          "lg": "primitive/typography/size/lg (18px)"
+        },
+        "weight": "primitive/typography/weight/medium (500)"
+      },
+      "radius": "primitive/radius/md (8px)",
+      "shadow": {
+        "default": "none",
+        "hover": "primitive/shadow/sm (subtle lift)"
+      }
+    },
+    "input": {
+      "background": {
+        "default": {
+          "value": "semantic/background/primary",
+          "note": "Transparent or slight background"
+        },
+        "disabled": {
+          "value": "semantic/background/secondary",
+          "opacity": 0.5
+        },
+        "readonly": {
+          "value": "semantic/background/tertiary"
+        }
+      },
+      "text": {
+        "default": {
+          "value": "semantic/text/primary"
+        },
+        "placeholder": {
+          "value": "semantic/text/tertiary"
+        },
+        "disabled": {
+          "value": "semantic/text/disabled"
+        }
+      },
+      "border": {
+        "default": {
+          "value": "semantic/border/default",
+          "width": "1px"
+        },
+        "hover": {
+          "value": "semantic/border/hover",
+          "width": "1px"
+        },
+        "focus": {
+          "value": "semantic/border/focus",
+          "width": "2px"
+        },
+        "error": {
+          "value": "semantic/border/error",
+          "width": "2px",
+          "note": "Validation error state"
+        }
+      },
+      "spacing": {
+        "padding-y": "primitive/spacing/sm (8px)",
+        "padding-x": "primitive/spacing/md (16px)"
+      },
+      "height": {
+        "sm": "32px",
+        "md": "40px",
+        "lg": "48px"
+      },
+      "radius": "primitive/radius/md (8px)",
+      "typography": {
+        "size": "primitive/typography/size/base (16px)",
+        "weight": "primitive/typography/weight/regular (400)"
+      }
+    },
+    "card": {
+      "background": {
+        "default": {
+          "value": "semantic/background/secondary"
+        },
+        "hover": {
+          "value": "semantic/background/elevated",
+          "note": "If card is interactive"
+        }
+      },
+      "border": {
+        "default": {
+          "value": "semantic/border/default",
+          "width": "1px"
+        }
+      },
+      "spacing": {
+        "padding": "primitive/spacing/lg (24px)",
+        "gap": "primitive/spacing/md (16px)"
+      },
+      "radius": "primitive/radius/lg (12px)",
+      "shadow": {
+        "default": "primitive/shadow/sm",
+        "hover": "primitive/shadow/md (if interactive)"
+      }
+    },
+    "badge": {
+      "background": {
+        "default": {
+          "value": "semantic/background/tertiary"
+        },
+        "success": {
+          "value": "semantic/feedback/success-bg"
+        },
+        "warning": {
+          "value": "semantic/feedback/warning-bg"
+        },
+        "error": {
+          "value": "semantic/feedback/error-bg"
+        }
+      },
+      "text": {
+        "default": {
+          "value": "semantic/text/secondary"
+        },
+        "success": {
+          "value": "semantic/feedback/success"
+        },
+        "warning": {
+          "value": "semantic/feedback/warning"
+        },
+        "error": {
+          "value": "semantic/feedback/error"
+        }
+      },
+      "spacing": {
+        "padding-y": "primitive/spacing/xs (4px)",
+        "padding-x": "primitive/spacing/sm (8px)"
+      },
+      "typography": {
+        "size": "primitive/typography/size/xs (12px)",
+        "weight": "primitive/typography/weight/medium (500)"
+      },
+      "radius": "primitive/radius/full (9999px)"
+    }
+  },
+  "consistency_rules": {
+    "focus_states": "All interactive components must use semantic/border/focus with 2px width and 2px offset",
+    "disabled_states": "All components use semantic/text/disabled and reduced opacity (0.5)",
+    "hover_transitions": "All hover states should have 150ms ease transition",
+    "spacing_consistency": "All components use the same padding scale (xs, sm, md, lg)",
+    "radius_consistency": "Buttons and inputs use md (8px), cards use lg (12px), badges use full (pill)"
+  }
+}
+```
+
+**3. Apply to Figma Components**
+
+```
+For Button Component in Figma:
+1. Create component with variants: Primary, Secondary, Ghost
+2. Add properties: Size (sm, md, lg), State (default, hover, active, disabled)
+3. Apply variables:
+   - Background fill → component/button/primary/background/default
+   - Text fill → component/button/primary/text/default
+   - Border → component/button/primary/border/focus (on focus variant)
+   - Padding → component/button/spacing/padding-y/md
+4. Create all state variants using the tokens
+5. Test interactions
+```
+
+**Expected Time:** 4-6 hours
+**Value:** Fully tokenized components that automatically adapt to theme changes
+
+---
+
+### Use Case 5: Complete System Gap Analysis (Complexity: ⭐⭐⭐⭐⭐)
+
+**Scenario:** You have a partial design system and want AI to audit it comprehensively.
+
+**What You Have:**
+- Some primitives (incomplete)
+- Some components
+- No semantic layer
+- Inconsistencies throughout
+
+**Goal:** Full audit with actionable plan to complete the system.
+
+---
+
+#### **Step-by-Step Workflow:**
+
+**1. Export Everything You Have**
+
+```bash
+# From Figma
+- Export all variables as JSON (File → Variables → Export)
+- Screenshot all components
+- Share Figma link via MCP
+
+# Document current state
+- List all components you have
+- Note any patterns or conventions you're using
+- Describe your product and brand
+```
+
+**2. Comprehensive Audit Prompt**
+
+```
+Conduct a comprehensive design system audit and provide a completion plan.
+
+ACCESS MY FIGMA:
+[Share link via MCP or provide exported JSON]
+
+CONTEXT:
+- Product: SaaS project management tool
+- Team: 5 designers, 12 developers
+- Current state: 2 years of ad-hoc design, no formal system
+- Goal: Create scalable design system for 50+ screens
+
+AUDIT REQUIREMENTS:
+1. Analyze all existing designs in Figma
+2. Identify all colors, spacing, typography currently used
+3. Find inconsistencies and redundancies
+4. Map existing patterns to design system structure
+5. Identify gaps in:
+   - Primitive tokens
+   - Semantic tokens
+   - Component coverage
+   - Pattern library
+   - Documentation
+6. Assess accessibility compliance
+7. Evaluate scalability
+
+DELIVERABLES NEEDED:
+1. Current state summary
+2. Gap analysis by category
+3. Prioritized action plan
+4. Token structure recommendations
+5. Component migration strategy
+6. Timeline estimate
+
+Provide output as structured JSON and markdown report.
+```
+
+**3. LLM Comprehensive Analysis Output**
+
+```markdown
+# DESIGN SYSTEM AUDIT REPORT
+Date: [Generated]
+System: Project Management SaaS
+
+## EXECUTIVE SUMMARY
+
+**Current Maturity: Level 2/5 (Inconsistent)**
+- Ad-hoc designs with emerging patterns
+- No formal token structure
+- Component library exists but not systematic
+- Major gaps in accessibility and scalability
+
+**Recommendation: 12-week systematic rebuild with migration plan**
+
+---
+
+## CURRENT STATE ANALYSIS
+
+### Colors Found (47 unique values)
+**Blues (18 variations):**
+- #3B82F6 (used 143 times) ← Primary blue
+- #2563EB (used 87 times) ← Darker variant
+- #1D4ED8 (used 34 times) ← Darkest
+- #60A5FA (used 23 times) ← Lighter
+- #4A90E2, #5B9FED, #3A7BD5... (14 more variations) ← REDUNDANT
+
+**Grays (15 variations):**
+- #F3F4F6 (used 234 times) ← Background
+- #E5E7EB (used 187 times) ← Borders
+- #6B7280 (used 145 times) ← Text
+- #9CA3AF, #8B92A0, #7A8189... (12 more) ← CONSOLIDATE
+
+**Other colors:**
+- Greens: 6 variations (should be 1-2)
+- Reds: 4 variations (should be 1-2)
+- Yellows: 4 variations (should be 1-2)
+
+**PROBLEMS:**
+❌ 18 blue variations when 9-10 (scale) would suffice
+❌ No systematic naming or organization
+❌ No dark mode consideration
+❌ Some colors fail WCAG AA contrast
+
+**RECOMMENDATION:**
+→ Consolidate to 5 color families (blue, gray, green, red, yellow)
+→ Each with 10-shade scale (50-900)
+→ Total: 50 primitive colors (down from 47 random ones)
+→ Eliminate 37 redundant values
+→ Add dark mode variants
+
+---
+
+### Spacing Found (23 unique values)
+**Current values:**
+4, 6, 8, 10, 12, 14, 15, 16, 18, 20, 22, 24, 28, 32, 36, 40, 48, 56, 64, 72, 96, 100, 128
+
+**PROBLEMS:**
+❌ Non-systematic (6px, 10px, 14px, 15px don't fit 8px system)
+❌ Too many similar values (20, 22, 24 should be just 24)
+❌ Missing key values (no 8px, but 6px and 10px exist?)
+
+**RECOMMENDATION:**
+→ Adopt 8px base system
+→ Scale: 4, 8, 16, 24, 32, 48, 64, 96, 128
+→ Eliminates 14 redundant values
+→ Migration: Map 6→8, 10→8, 12→16, 14→16, 15→16, etc.
+
+---
+
+### Typography Found
+**Font Sizes (19 unique values):**
+11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28, 30, 36, 42, 48, 64
+
+**PROBLEMS:**
+❌ Too granular (11, 13, 15, 17, 19, 26, 42 don't fit any scale)
+❌ No clear hierarchy
+❌ Inconsistent usage (same size for different purposes)
+
+**Font Weights:**
+- Found: 300, 400, 500, 600, 700, 800
+- Usage: Scattered, no convention
+
+**Line Heights:**
+- Found: 1.2, 1.3, 1.4, 1.5, 1.6, 1.75, 2.0
+- Usage: Inconsistent
+
+**RECOMMENDATION:**
+→ Type scale: 12, 14, 16, 18, 20, 24, 30, 36, 48, 60
+→ Weights: Regular (400), Medium (500), Semibold (600), Bold (700)
+→ Line heights: 1.25 (tight), 1.5 (normal), 1.75 (relaxed)
+→ Migrate all odd sizes to nearest scale value
+
+---
+
+### Components Audit
+
+**Existing Components (23 found):**
+
+✅ Well-structured:
+- Button (3 variants, but needs token migration)
+- Input (basic, needs states)
+- Card (good foundation)
+
+⚠️ Needs improvement:
+- Modal (7 different implementations found!)
+- Dropdown (inconsistent styling)
+- Table (no standardized pattern)
+- Navigation (3 different patterns)
+
+❌ Missing entirely:
+- Tabs
+- Accordion
+- Toast/Notification
+- Empty states
+- Loading states
+- Pagination
+- Breadcrumbs
+- Progress indicators
+- Forms (as pattern)
+- Data visualization components
+
+**RECOMMENDATION:**
+→ Consolidate 7 modal implementations to 1 systematic component
+→ Build 10 missing core components
+→ Document usage patterns for complex components (tables, forms)
+
+---
+
+### Accessibility Issues Found
+
+❌ **Critical (must fix):**
+1. 23 color combinations fail WCAG AA (4.5:1)
+2. No focus states on 40% of interactive elements
+3. Buttons smaller than 44x44px on mobile (15 instances)
+4. Form inputs missing labels (12 instances)
+5. Modal focus trap not implemented
+
+⚠️ **Important:**
+1. Inconsistent heading hierarchy (h1→h4 skips h2 in 8 places)
+2. Icon buttons missing aria-labels (45 instances)
+3. Empty alt text on 12 decorative images
+
+**RECOMMENDATION:**
+→ Immediate: Fix all WCAG AA failures
+→ Week 2: Add focus states to all interactive elements
+→ Week 3: Audit and fix all other a11y issues
+
+---
+
+## GAP ANALYSIS BY CATEGORY
+
+### Primitives: 40% Complete
+**Missing:**
+- [ ] Complete color scales (have fragments, need systematic scales)
+- [ ] Dark mode color variants (0% coverage)
+- [ ] Semantic colors for success/warning/error (partial)
+- [ ] Complete spacing scale
+- [ ] Shadow/elevation system (ad-hoc shadows found)
+- [ ] Border radius system (using 4px, 6px, 8px inconsistently)
+
+### Semantics: 10% Complete
+**Missing:**
+- [ ] Background token layer
+- [ ] Text color token layer
+- [ ] Border token layer
+- [ ] Action/interactive token layer
+- [ ] Feedback token layer
+- [ ] Surface/elevation token layer
+
+### Components: 50% Complete
+**Existing:** 23 components (many need refactoring)
+**Missing:** 10 essential components
+**Needs tokens:** All 23 existing components use hard-coded values
+
+### Patterns: 20% Complete
+**Partial:**
+- Forms (no standard pattern)
+- Data display (tables exist but inconsistent)
+- Navigation (multiple approaches)
+
+**Missing:**
+- Empty states
+- Error states
+- Loading states
+- Onboarding flows
+
+### Documentation: 5% Complete
+**Exists:**
+- Basic component names
+- Some descriptions
+
+**Missing:**
+- Usage guidelines
+- Do's and don'ts
+- Accessibility guidance
+- Code examples
+- Design principles
+- Token documentation
+
+---
+
+## PRIORITIZED ACTION PLAN
+
+### Phase 1: Foundation (Weeks 1-3)
+**Goal: Establish token structure**
+
+**Week 1: Primitive Tokens**
+- [ ] Create complete color scales (5 families × 10 shades)
+- [ ] Create spacing scale (8px system)
+- [ ] Create typography scale
+- [ ] Create radius and shadow scales
+- [ ] Set up Figma variables
+
+**Week 2: Semantic Tokens**
+- [ ] Create background tokens
+- [ ] Create text color tokens
+- [ ] Create border tokens
+- [ ] Create action tokens
+- [ ] Create feedback tokens
+- [ ] Set up light/dark modes
+
+**Week 3: Accessibility Fixes**
+- [ ] Fix all WCAG AA color contrast failures
+- [ ] Add focus states to all interactive elements
+- [ ] Ensure minimum touch targets (44x44px)
+
+### Phase 2: Components (Weeks 4-7)
+**Goal: Tokenize existing, build missing**
+
+**Week 4-5: Refactor Existing Components**
+- [ ] Migrate all 23 components to use variables
+- [ ] Consolidate duplicate components (7 modals → 1)
+- [ ] Add missing states (hover, focus, disabled, error)
+
+**Week 6-7: Build Missing Components**
+- [ ] Tabs component
+- [ ] Accordion component
+- [ ] Toast/Notification
+- [ ] Empty states
+- [ ] Loading states
+- [ ] Pagination
+- [ ] Breadcrumbs
+- [ ] Progress indicators
+
+### Phase 3: Patterns & Documentation (Weeks 8-10)
+**Goal: Document usage and patterns**
+
+**Week 8: Pattern Library**
+- [ ] Form patterns (validation, multi-step, inline editing)
+- [ ] Data display patterns (tables, lists, cards)
+- [ ] Navigation patterns (sidebar, header, breadcrumbs)
+- [ ] Modal patterns (confirmation, forms, detail views)
+
+**Week 9-10: Documentation**
+- [ ] Token documentation (when to use what)
+- [ ] Component usage guidelines
+- [ ] Accessibility guidelines
+- [ ] Code examples (React/Vue/etc)
+- [ ] Design principles
+- [ ] Contribution guidelines
+
+### Phase 4: Migration & Adoption (Weeks 11-12)
+**Goal: Migrate existing screens to new system**
+
+**Week 11: Migration Plan**
+- [ ] Audit all 50+ screens
+- [ ] Prioritize high-traffic screens
+- [ ] Create migration scripts for tokens
+- [ ] Update components to use new system
+
+**Week 12: Training & Rollout**
+- [ ] Designer training sessions
+- [ ] Developer training sessions
+- [ ] Update design file structure
+- [ ] Update codebase with new tokens
+- [ ] Monitor adoption and gather feedback
+
+---
+
+## TOKEN STRUCTURE RECOMMENDATIONS
+
+```json
+{
+  "primitives": {
+    "color": {
+      "blue": { "50-900": "10 shades" },
+      "gray": { "50-900": "10 shades" },
+      "green": { "50-900": "10 shades" },
+      "red": { "50-900": "10 shades" },
+      "yellow": { "50-900": "10 shades" }
+    },
+    "spacing": [4, 8, 16, 24, 32, 48, 64, 96, 128],
+    "typography": {
+      "size": [12, 14, 16, 18, 20, 24, 30, 36, 48, 60],
+      "weight": [400, 500, 600, 700],
+      "lineHeight": [1.25, 1.5, 1.75]
+    },
+    "radius": [0, 2, 4, 8, 12, 16, 24, 9999],
+    "shadow": ["none", "sm", "md", "lg", "xl", "2xl"]
+  },
+  "semantic": {
+    "background": ["primary", "secondary", "tertiary", "elevated", "overlay"],
+    "text": ["primary", "secondary", "tertiary", "disabled", "link", "inverse"],
+    "border": ["default", "strong", "hover", "focus", "error"],
+    "action": ["primary", "primary-hover", "secondary", "secondary-hover"],
+    "feedback": ["success", "success-bg", "warning", "warning-bg", "error", "error-bg", "info", "info-bg"]
+  },
+  "component": {
+    "button": { "variants": ["primary", "secondary", "ghost"], "properties": ["background", "text", "border", "spacing"] },
+    "input": { "properties": ["background", "text", "border", "spacing", "height"] },
+    "card": { "properties": ["background", "border", "spacing", "radius", "shadow"] },
+    "...": "Additional components"
+  }
+}
+```
+
+---
+
+## COMPONENT MIGRATION STRATEGY
+
+### Approach: Gradual Migration
+**Not: Big bang rewrite**
+**But: Incremental adoption with both old and new coexisting**
+
+**Step 1: Create new design system file (Week 1-3)**
+**Step 2: Build new components alongside old ones (Week 4-7)**
+**Step 3: Document which screens use old vs new (Week 8)**
+**Step 4: Migrate high-priority screens first (Week 11)**
+**Step 5: Deprecate old components when 80% migrated (Week 12+)**
+
+### Migration Mapping
+```
+Old Component → New Component
+Button_v1 (hard-coded #3B82F6) → Button (uses component/button/primary/background/default)
+Button_Blue → Button variant="primary"
+Button_Gray → Button variant="secondary"
+Button_Outline → Button variant="ghost"
+
+Input_Standard → Input
+Input_Error → Input state="error"
+Input_Disabled → Input state="disabled"
+
+Card_White → Card
+Card_Gray → Card variant="secondary"
+...
+```
+
+---
+
+## TIMELINE ESTIMATE
+
+**Total Duration: 12 weeks**
+**Team Required:**
+- 1 Design System Lead (full-time)
+- 2 Product Designers (50% time)
+- 1 Frontend Engineer (full-time)
+- 1 QA/Accessibility Specialist (25% time)
+
+**Milestones:**
+- Week 3: Token foundation complete ✓
+- Week 7: All components tokenized and built ✓
+- Week 10: Documentation complete ✓
+- Week 12: Migration complete, system adopted ✓
+
+**Risk Factors:**
+⚠️ Team availability (holidays, other projects)
+⚠️ Scope creep (new component requests)
+⚠️ Migration complexity (legacy code issues)
+⚠️ Adoption resistance (designers prefer old workflow)
+
+**Mitigation:**
+→ Lock scope after Phase 1
+→ Create clear migration guide
+→ Weekly check-ins with stakeholders
+→ Celebrate early wins to build momentum
+
+---
+
+## SUCCESS METRICS
+
+**Adoption:**
+- [ ] 80% of designers using system by Week 12
+- [ ] 50% of screens migrated by Week 12
+- [ ] 100% of new designs use system
+
+**Quality:**
+- [ ] 0 WCAG AA failures
+- [ ] 100% of interactive elements have focus states
+- [ ] <10 color values used across product (from 47)
+- [ ] <10 spacing values used (from 23)
+
+**Efficiency:**
+- [ ] 30% faster design handoff (measured by dev questions)
+- [ ] 50% less design QA time (fewer inconsistencies)
+- [ ] 40% faster new screen creation (using system components)
+
+**Documentation:**
+- [ ] Every component documented
+- [ ] Every token documented
+- [ ] Usage guidelines complete
+- [ ] Code examples for all components
+
+---
+
+## IMMEDIATE NEXT STEPS (This Week)
+
+1. **Get buy-in:**
+   - Share this audit with leadership
+   - Get commitment for 12-week timeline
+   - Allocate team resources
+
+2. **Set up infrastructure:**
+   - Create new "Design System" Figma file
+   - Set up variables structure
+   - Create project board for tracking
+
+3. **Start Week 1 tasks:**
+   - Begin primitive color scale creation
+   - Start spacing scale standardization
+   - Document current component inventory
+
+4. **Communication:**
+   - Announce system initiative to team
+   - Set up weekly sync meetings
+   - Create Slack channel for questions/updates
+```
+
+**4. Implement the Plan**
+
+Follow the LLM's structured plan week by week, using subsequent AI assistance for:
+- Generating specific token values
+- Creating component documentation
+- Writing migration scripts
+- Validating accessibility
+
+**Expected Time:** 12 weeks (as outlined in audit)
+**Value:** Complete, professional design system with clear migration path
+
+---
+
+## Quick Reference: When to Use AI Augmentation
+
+| Task | Complexity | AI Value | Best Approach |
+|------|-----------|----------|---------------|
+| Analyze existing designs | ⭐ | High | Upload screenshots, ask for pattern identification |
+| Complete color/spacing scales | ⭐⭐ | Very High | Provide base values, LLM generates full scales |
+| Create semantic tokens | ⭐⭐⭐ | High | Give primitives + context, LLM maps purposes |
+| Component tokenization | ⭐⭐⭐⭐ | Medium | Show components, LLM extracts token needs |
+| Full system audit | ⭐⭐⭐⭐⭐ | Very High | Share Figma via MCP, request comprehensive audit |
+| Gap identification | ⭐⭐⭐ | Very High | LLM compares your system to best practices |
+| Accessibility validation | ⭐⭐ | Very High | LLM checks contrast ratios, finds violations |
+| Documentation generation | ⭐⭐ | Medium | LLM writes usage guidelines from structure |
+| Migration planning | ⭐⭐⭐⭐ | High | LLM creates step-by-step migration strategy |
+
+---
+
+## AI Prompt Templates
+
+### Template 1: Initial Analysis
+```
+Analyze my Figma designs and identify what design tokens I need.
+
+[Share Figma link via MCP or attach screenshots]
+
+Current state:
+- [Number] screens designed
+- [Description of product/brand]
+- [Any existing conventions]
+
+Identify:
+1. All colors currently used
+2. All spacing values currently used
+3. All font sizes currently used
+4. Inconsistencies and redundancies
+5. Gaps in my system
+6. Recommendations for standardization
+```
+
+### Template 2: Scale Generation
+```
+Generate a complete [color/spacing/typography] scale for my design system.
+
+Base value: [Your value]
+System: [8px base / 1.25 ratio / etc]
+Use case: [Description]
+
+Provide:
+1. Complete scale with values
+2. Usage guidelines for each value
+3. Variable naming convention
+4. Light and dark mode variants (for colors)
+```
+
+### Template 3: Semantic Mapping
+```
+Map my primitive tokens to semantic purpose tokens.
+
+Primitives available:
+[Paste your primitive structure]
+
+Product context:
+- Type: [SaaS/Marketing/E-commerce/etc]
+- Industry: [Finance/Healthcare/etc]
+- Needs: [Light/dark mode, accessibility requirements, etc]
+
+Generate:
+1. Complete semantic token structure
+2. Mappings to primitives
+3. Usage guidelines
+4. Accessibility notes
+```
+
+### Template 4: Component Token Extraction
+```
+Create component-specific tokens for [Component Name].
+
+Component details:
+- Variants: [Primary, Secondary, etc]
+- States: [Default, Hover, Active, Disabled]
+- Use cases: [Where it's used]
+
+Available semantic tokens:
+[Paste semantic structure]
+
+Generate:
+1. All necessary component tokens
+2. References to semantic/primitives
+3. Specifications for each state
+4. Consistency rules
+```
+
+### Template 5: Comprehensive Audit
+```
+Conduct a complete design system audit.
+
+Access: [Figma link via MCP]
+
+Context:
+- Product: [Description]
+- Team size: [Number]
+- Current state: [Maturity level]
+- Goal: [Objectives]
+
+Deliver:
+1. Current state analysis
+2. Gap identification
+3. Prioritized action plan
+4. Token structure recommendations
+5. Timeline estimate
+6. Success metrics
+```
+
+---
+
+**What's Next:** Phase 3 - Building actual components using these variables!
+
+---
+
+## Phase 3: Component Architecture
+
+### Step 3.1: Build Core Components
+
+**Component Hierarchy:**
+```
+Atoms (Basic building blocks)
+  ├── Button
+  ├── Input
+  ├── Icon
+  ├── Label
+  ├── Badge
+  └── Avatar
+
+Molecules (Simple combinations)
+  ├── Input with Label
+  ├── Button Group
+  ├── Search Field
+  └── Select Dropdown
+
+Organisms (Complex patterns)
+  ├── Navigation Bar
+  ├── Form Section
+  ├── Card with Actions
+  └── Data Table
+```
+
+### Step 3.2: Component Properties Strategy
+
+**Use Figma's Component Properties:**
+- **Variants:** Size (sm, md, lg), State (default, hover, active, disabled)
+- **Boolean:** Icon, Label, Badge
+- **Text:** Label content, Placeholder
+- **Instance Swap:** Icon selection
+
+### Step 3.3: Leverage Slots
+
+**For dynamic components:**
+```
+Component: Dropdown List
+- Use Slots to allow designers to add custom list items
+- Specify accepted instances (ListItem components only)
+- Maintains design system compliance while adding flexibility
+```
+
+### Step 3.4: Connect Variables to Components
+
+**Every component property should reference variables:**
+```
+Button Background Fill → component/button/background/default
+Button Text Fill → component/button/text/default
+Button Corner Radius → primitive/radius/md
+Button Padding → primitive/spacing/md
+```
+
+---
+
+## Phase 4: Export Strategy
+
+### Step 4.1: Use Native Import/Export
+
+**Figma now supports DTCG 1.0 format:**
+
+1. **Export Variables:**
+   - File → Variables → Export variables
+   - Choose DTCG JSON format
+   - Exports all collections and modes
+
+2. **DTCG JSON Structure:**
+```json
+{
+  "primitive": {
+    "color": {
+      "blue": {
+        "50": {
+          "$type": "color",
+          "$value": "#eff6ff"
+        },
+        "500": {
+          "$type": "color",
+          "$value": "#3b82f6"
+        }
+      }
+    }
+  },
+  "semantic": {
+    "background": {
+      "primary": {
+        "$type": "color",
+        "$value": "{primitive.color.gray.50}"
+      }
+    }
+  }
+}
+```
+
+### Step 4.2: Export Component Documentation
+
+**Use Code Connect UI:**
+
+1. Connect Figma to GitHub repository
+2. Use AI suggestions to map Figma components to code files
+3. Establish bidirectional link between design and code
+
+**Manual Documentation Export:**
+- Component names and descriptions
+- Usage guidelines
+- Props/properties
+- State variations
+- Accessibility notes
+- Do's and Don'ts
+
+### Step 4.3: Create Design System JSON Schema
+
+**Structure for LLM consumption:**
+
+```json
+{
+  "designSystem": {
+    "name": "Acme Design System",
+    "version": "2.0.0",
+    "tokens": {
+      "colors": { ... },
+      "spacing": { ... },
+      "typography": { ... }
+    },
+    "components": {
+      "button": {
+        "description": "Primary interactive element",
+        "variants": ["primary", "secondary", "ghost"],
+        "sizes": ["sm", "md", "lg"],
+        "properties": {
+          "background": "{component.button.background.default}",
+          "text": "{component.button.text.default}"
+        },
+        "states": ["default", "hover", "active", "disabled"],
+        "accessibility": {
+          "minTouchTarget": "44px",
+          "contrast": "4.5:1"
+        }
+      }
+    },
+    "patterns": { ... },
+    "guidelines": { ... }
+  }
+}
+```
+
+---
+
+## Phase 5: LLM Integration via MCP
+
+### Step 5.1: Set Up Figma MCP Server
+
+**The Figma MCP server is now GA and available to all users.**
+
+**Installation:**
+
+1. **Choose Your MCP Client:**
+   - Claude Desktop
+   - Cline
+   - Zed
+   - Continue
+   - [View full catalog](https://www.figma.com/mcp-catalog/)
+
+2. **Install Figma MCP Server:**
+
+For Claude Desktop, edit config file:
+
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "figma": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@figma/mcp-server-figma"
+      ],
+      "env": {
+        "FIGMA_PERSONAL_ACCESS_TOKEN": "your-token-here"
+      }
+    }
+  }
+}
+```
+
+3. **Get Figma Personal Access Token:**
+   - Go to Figma Settings → Personal Access Tokens
+   - Generate new token
+   - Add scopes: File content, Variables, Code Connect
+
+### Step 5.2: Add Design System Guidelines to MCP
+
+**Custom AI Guidelines**
+
+You can add custom guidelines to instruct the AI on how to properly use your design system:
+
+**Create a guidelines file:** `design-system-guidelines.md`
+
+```markdown
+# Design System AI Guidelines
+
+## Component Usage Rules
+
+### Buttons
+- Use primary buttons for main actions (max 1 per screen)
+- Use secondary buttons for alternative actions
+- Ghost buttons for tertiary actions only
+- Minimum spacing between buttons: 8px
+
+### Colors
+- Never use primitive colors directly
+- Always reference semantic tokens
+- Maintain 4.5:1 contrast for text
+- Use state tokens for interactive elements
+
+### Spacing
+- Follow 8px grid system
+- Container padding: 16px mobile, 24px desktop
+- Section spacing: 48px minimum
+- Component internal spacing: use component tokens
+
+### Typography
+- Headings: Use type scale from h1-h6
+- Body: Use body-lg for hero text, body-md for general
+- Never use font sizes outside the type scale
+- Line height: 1.5 for body, 1.2 for headings
+```
+
+**Add to MCP Server:**
+```json
+{
+  "mcpServers": {
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "@figma/mcp-server-figma"],
+      "env": {
+        "FIGMA_PERSONAL_ACCESS_TOKEN": "your-token-here",
+        "DESIGN_SYSTEM_GUIDELINES_PATH": "/path/to/guidelines.md"
+      }
+    }
+  }
+}
+```
+
+### Step 5.3: MCP Workflow Patterns
+
+**FigJam Diagrams:**
+Create multi-step workflows in FigJam that MCP can follow:
+
+```
+[User Flow Diagram]
+  ↓
+[Component Selection Logic]
+  ↓
+[State Management Rules]
+  ↓
+[Accessibility Checks]
+```
+
+**Desktop vs. Remote Server:**
+- **Desktop server:** Access files in your Figma desktop app
+- **Remote server:** Access files via Figma links
+- Both now have feature parity
+
+---
+
+## Phase 6: CSS Global System
+
+### Step 6.1: Transform Tokens to CSS Variables
+
+**Generate CSS from DTCG JSON:**
+
+```css
+:root {
+  /* Primitive Colors */
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-500: #3b82f6;
+  --color-blue-900: #1e3a8a;
+
+  /* Semantic Colors */
+  --background-primary: var(--color-gray-50);
+  --background-secondary: var(--color-gray-100);
+  --text-primary: var(--color-gray-900);
+  --text-secondary: var(--color-gray-600);
+
+  /* Component Tokens */
+  --button-bg-primary: var(--color-blue-500);
+  --button-text-primary: var(--color-white);
+  --button-bg-primary-hover: var(--color-blue-600);
+
+  /* Spacing Scale */
+  --spacing-xs: 0.25rem; /* 4px */
+  --spacing-sm: 0.5rem;  /* 8px */
+  --spacing-md: 1rem;    /* 16px */
+  --spacing-lg: 1.5rem;  /* 24px */
+  --spacing-xl: 2rem;    /* 32px */
+
+  /* Typography Scale */
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-md: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;  /* 4px */
+  --radius-md: 0.5rem;   /* 8px */
+  --radius-lg: 1rem;     /* 16px */
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --background-primary: var(--color-gray-900);
+  --background-secondary: var(--color-gray-800);
+  --text-primary: var(--color-gray-50);
+  --text-secondary: var(--color-gray-300);
+}
+```
+
+### Step 6.2: CSS Architecture
+
+**File Structure:**
+
+```
+styles/
+├── tokens/
+│   ├── colors.css        (primitives + semantic)
+│   ├── spacing.css
+│   ├── typography.css
+│   ├── borders.css
+│   └── shadows.css
+├── components/
+│   ├── button.css
+│   ├── input.css
+│   └── card.css
+├── utilities/
+│   ├── layout.css
+│   └── spacing.css
+└── globals.css           (imports all)
+```
+
+### Step 6.3: Component CSS Example
+
+```css
+/* button.css */
+.button {
+  /* Use semantic tokens */
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  
+  transition: all 150ms ease;
+  
+  /* Use component tokens */
+  background-color: var(--button-bg-primary);
+  color: var(--button-text-primary);
+  border-color: var(--button-border-primary);
+}
+
+.button:hover {
+  background-color: var(--button-bg-primary-hover);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--button-border-focus);
+  outline-offset: 2px;
+}
+
+.button--secondary {
+  background-color: var(--button-bg-secondary);
+  color: var(--button-text-secondary);
+}
+
+.button--sm {
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+}
+
+.button--lg {
+  font-size: var(--font-size-lg);
+  padding: var(--spacing-md) var(--spacing-xl);
+}
+```
+
+### Step 6.4: Automation Scripts
+
+**Token to CSS Transformer:**
+
+```javascript
+// transform-tokens-to-css.js
+const fs = require('fs');
+const tokens = require('./tokens.json');
+
+function transformToCSSVars(obj, prefix = '') {
+  let css = '';
+  
+  for (const [key, value] of Object.entries(obj)) {
+    const varName = `${prefix}${prefix ? '-' : ''}${key}`;
+    
+    if (typeof value === 'object' && !value.$value) {
+      // Recursive for nested objects
+      css += transformToCSSVars(value, varName);
+    } else if (value.$value) {
+      // Token with $value
+      css += `  --${varName}: ${value.$value};\n`;
+    }
+  }
+  
+  return css;
+}
+
+const cssVars = `:root {\n${transformToCSSVars(tokens)}\n}`;
+fs.writeFileSync('tokens.css', cssVars);
+```
+
+---
+
+## Phase 7: Prompt Engineering for LLM Structuring
+
+### Step 7.1: System Prompt Template
+
+```
+You are a design system expert helping to structure and implement a design system.
+
+DESIGN SYSTEM CONTEXT:
+- Name: [System Name]
+- Version: [Version]
+- Platforms: [Web, iOS, Android]
+- Framework: [React, Vue, etc.]
+
+TOKEN HIERARCHY:
+1. Primitive tokens: Raw values (colors, sizes)
+2. Semantic tokens: Purpose-based aliases
+3. Component tokens: Component-specific values
+
+RULES:
+1. Always use tokens, never hardcode values
+2. Reference semantic tokens, not primitive ones
+3. Maintain token naming conventions
+4. Follow component composition patterns
+5. Ensure accessibility standards (WCAG 2.1 AA)
+6. Use the 8px grid system for spacing
+7. Maintain 4.5:1 contrast for normal text
+8. Touch targets must be at least 44x44px
+
+AVAILABLE TOKENS:
+[Paste your token JSON or reference MCP context]
+
+AVAILABLE COMPONENTS:
+[List your components with their props]
+
+When generating code or designs:
+- Always explain which tokens you're using and why
+- Show the token path (e.g., semantic/background/primary)
+- Flag any violations of the design system
+- Suggest alternatives if a request doesn't fit the system
+```
+
+### Step 7.2: Specific Task Prompts
+
+**For Component Generation:**
+```
+Create a [component name] component that:
+- Uses our design system tokens
+- Follows our component architecture
+- Has variants: [list variants]
+- Has states: [list states]
+- Meets WCAG 2.1 AA standards
+- Works with our [framework]
+
+Reference the design system context from the MCP server.
+Show which tokens you're using for each property.
+```
+
+**For Token Structuring:**
+```
+Help me structure tokens for [feature/component area]:
+
+Current tokens available: [list or reference MCP]
+
+I need tokens for:
+- [specific use case]
+- [another use case]
+
+Follow our naming convention:
+- Primitives: primitive/[category]/[name]/[variant]
+- Semantic: semantic/[purpose]/[element]/[state]
+- Component: component/[name]/[property]/[state]
+
+Create a token structure that:
+1. Builds on existing primitives
+2. Creates necessary semantic aliases
+3. Defines component-specific tokens
+4. Supports light and dark modes
+5. Is scalable and maintainable
+```
+
+**For CSS Generation:**
+```
+Generate CSS for [component] using our design system:
+
+Requirements:
+- Use CSS custom properties from our token system
+- Support variants: [list]
+- Support states: [list]
+- Mobile-first responsive
+- Follow BEM naming convention
+- Include focus states for accessibility
+
+Token context: [reference MCP or paste token structure]
+
+Output:
+1. CSS custom properties needed
+2. Component styles
+3. Variant styles
+4. State styles
+5. Responsive adjustments
+```
+
+### Step 7.3: Validation Prompts
+
+**Check Designs Integration:**
+```
+Validate this design against our design system:
+
+Design details: [description or Figma link]
+
+Check for:
+1. Token usage (are raw values used instead of tokens?)
+2. Component consistency (match our library?)
+3. Spacing compliance (8px grid?)
+4. Color contrast (WCAG AA?)
+5. Typography scale (uses defined sizes?)
+6. Accessibility (touch targets, focus states?)
+
+For each issue found:
+- Explain the problem
+- Reference the correct token/component
+- Show the fix
+```
+
+### Step 7.4: Migration Prompts
+
+**For updating legacy code:**
+```
+Update this [component/code] to use our design system:
+
+Current code: [paste code]
+
+Design system context: [reference MCP]
+
+Tasks:
+1. Replace hardcoded values with tokens
+2. Update to use design system components
+3. Ensure accessibility compliance
+4. Match current visual design
+5. Show before/after comparison
+6. List all tokens used
+
+Maintain functionality while improving consistency.
+```
+
+---
+
+## Phase 8: Advanced Workflows
+
+### Step 8.1: Make Kits Integration
+
+**Export design system for Figma Make:**
+
+1. **Generate Make Kit:**
+   - Select design system library
+   - Export → Make Kit
+   - Generates React components + CSS
+
+2. **Configure Make Context:**
+```json
+{
+  "makeKit": {
+    "components": "path/to/components",
+    "styles": "path/to/styles.css",
+    "tokens": "path/to/tokens.json"
+  }
+}
+```
+
+3. **Prompt Template for Make:**
+```
+Generate an app screen using our design system (available via Make Kit):
+
+Requirements:
+- Use only components from our design system
+- Apply our token system for spacing and colors
+- Match our established patterns
+- Maintain our accessibility standards
+
+Available components: [auto-populated by Make]
+Available tokens: [auto-populated by Make]
+
+[Your specific requirements]
+```
+
+### Step 8.2: Continuous Sync Workflow
+
+**Set up automated sync:**
+
+```bash
+# npm script
+{
+  "scripts": {
+    "sync:tokens": "figma-export-tokens && transform-to-css",
+    "sync:components": "figma-code-connect sync",
+    "sync:docs": "figma-export-docs && generate-readme",
+    "sync:all": "npm run sync:tokens && npm run sync:components && npm run sync:docs"
+  }
+}
+```
+
+**CI/CD Integration:**
+```yaml
+# .github/workflows/design-sync.yml
+name: Design System Sync
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Daily at 9am
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Sync Design Tokens
+        run: npm run sync:tokens
+      - name: Create PR if changes
+        # ... create PR with changes
+```
+
+---
+
+## Phase 9: Best Practices & Tips
+
+### 9.1: Token Naming Best Practices
+
+**DO:**
+- ✅ Use clear, descriptive names: `semantic/text/primary`
+- ✅ Follow a consistent hierarchy: `category/subcategory/name/variant`
+- ✅ Use purpose-based semantic names: `semantic/background/danger`
+- ✅ Create component-specific tokens: `component/button/background/hover`
+
+**DON'T:**
+- ❌ Use presentational names: `text/dark-gray`
+- ❌ Mix naming conventions: `button-bg` and `buttonBackground`
+- ❌ Skip semantic layer: primitive → component directly
+- ❌ Use abbreviations that aren't universal: `btn/bg/prim`
+
+### 9.2: Component Documentation Structure
+
+**For each component, document:**
+
+```markdown
+# Component Name
+
+## Description
+Brief overview of the component and its purpose.
+
+## When to Use
+- Use case 1
+- Use case 2
+
+## When Not to Use
+- Anti-pattern 1
+- Alternative suggestion
+
+## Variants
+- **Primary:** For main actions
+- **Secondary:** For secondary actions
+- **Ghost:** For tertiary actions
+
+## Props/Properties
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| size | enum | 'md' | Size: sm, md, lg |
+| variant | enum | 'primary' | Style variant |
+| disabled | boolean | false | Disabled state |
+
+## Tokens Used
+- Background: `component/button/background/default`
+- Text: `component/button/text/default`
+- Border: `component/button/border/default`
+
+## Accessibility
+- Minimum touch target: 44x44px
+- Color contrast: 4.5:1
+- Keyboard navigation: Tab, Enter/Space
+- Screen reader: Proper ARIA labels
+
+## Examples
+[Include visual examples and code]
+```
+
+### 9.3: LLM Context Optimization
+
+**Create a consolidated context file:**
+
+```json
+{
+  "designSystem": {
+    "name": "Acme Design System",
+    "version": "2.0.0",
+    "lastUpdated": "2025-01-15",
+    
+    "principles": [
+      "Accessibility first",
+      "Consistency over creativity",
+      "Progressive disclosure",
+      "Mobile-first responsive"
+    ],
+    
+    "tokens": {
+      "colors": { "url": "tokens/colors.json" },
+      "spacing": { "url": "tokens/spacing.json" },
+      "typography": { "url": "tokens/typography.json" }
+    },
+    
+    "components": {
+      "count": 45,
+      "catalog": "components/catalog.json",
+      "guidelines": "components/guidelines.md"
+    },
+    
+    "patterns": {
+      "forms": "patterns/forms.md",
+      "navigation": "patterns/navigation.md",
+      "dataDisplay": "patterns/data-display.md"
+    },
+    
+    "accessibility": {
+      "standard": "WCAG 2.1 AA",
+      "guidelines": "a11y/guidelines.md"
+    },
+    
+    "codeStandards": {
+      "framework": "React",
+      "styling": "CSS Modules + CSS Variables",
+      "naming": "BEM",
+      "guidelines": "code/standards.md"
+    }
+  }
+}
+```
+
+**Reference in prompts:**
+```
+Context: Design system available via MCP at [Figma file URL]
+Additional context: [paste consolidated JSON]
+
+[Your request]
+```
+
+---
+
+## Phase 10: Troubleshooting & Common Issues
+
+### Issue 1: Token References Breaking
+
+**Problem:** Variables reference each other incorrectly
+**Solution:**
+- Use absolute references: `{primitive.color.blue.500}`
+- Don't create circular references
+- Document token dependency tree
+
+### Issue 2: Mode Switching Performance
+
+**Problem:** Slow mode changes (light/dark)
+**Solution:**
+- Recent Figma updates include 30-60% performance improvements
+- Reduce variable complexity
+- Minimize nested references
+
+### Issue 3: Inconsistent LLM Outputs
+
+**Problem:** LLM doesn't follow design system
+**Solution:**
+- Use MCP with custom AI Guidelines
+- Be specific in prompts about token usage
+- Include validation checks in prompts
+- Provide examples of correct implementation
+
+### Issue 4: Export/Import Issues
+
+**Problem:** Variables not exporting correctly
+**Solution:**
+- Use native DTCG export format
+- Validate JSON structure
+- Check token references use correct syntax
+
+---
+
+## Phase 11: Starting with shadcn/ui and Making It Your Own
+
+**Scenario:** You want to move fast by starting with shadcn/ui components, but need to customize them to match your brand and avoid the "generic shadcn look."
+
+### Step 11.1: Understanding shadcn/ui's Token System
+
+**What is shadcn/ui?**
+A collection of beautifully designed, accessible React components that you copy into your project (not an npm package). Built on Radix UI and Tailwind CSS.
+
+**Why start here?**
+✅ Production-ready components (accessibility built-in)  
+✅ Customizable from the start  
+✅ Uses CSS variables (compatible with our token system)  
+✅ No dependency lock-in  
+
+**What makes it "generic"?**
+- Default uses neutral grays
+- Standard border radius (0.5rem/8px)
+- Predictable spacing
+- Conservative shadows
+- Everyone starts with the same defaults
+
+---
+
+### Step 11.2: The shadcn/ui Token Structure
+
+**shadcn's default CSS variables:**
+
+```css
+:root {
+  /* Background colors */
+  --background: 0 0% 100%;           /* Page background */
+  --foreground: 222.2 84% 4.9%;      /* Text color */
+  
+  /* Card/Panel colors */
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  
+  /* Popover (dropdown, tooltip) */
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  
+  /* Default UI elements */
+  --primary: 222.2 47.4% 11.2%;      /* Primary action color */
+  --primary-foreground: 210 40% 98%;
+  
+  /* Secondary UI elements */
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  
+  /* Muted/disabled */
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  
+  /* Accent */
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  
+  /* Destructive/error */
+  --destructive: 0 84.2% 60.2%;      /* Red */
+  --destructive-foreground: 210 40% 98%;
+  
+  /* Borders */
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;        /* Input borders */
+  --ring: 222.2 84% 4.9%;            /* Focus ring */
+  
+  /* Border radius */
+  --radius: 0.5rem;                  /* 8px */
+}
+
+/* Note: Colors use HSL format in shadcn */
+```
+
+---
+
+### Step 11.3: Strategy - Map Your Tokens to shadcn Variables
+
+**Don't:** Replace shadcn components entirely  
+**Do:** Keep shadcn components, remap their CSS variables to your tokens
+
+**Mapping Exercise:**
+
+```
+Your Design System          →  shadcn Variable
+-----------------------------------------------------
+semantic/background/primary  →  --background
+semantic/text/primary        →  --foreground
+semantic/action/primary      →  --primary
+semantic/action/secondary    →  --secondary
+semantic/feedback/error      →  --destructive
+semantic/border/default      →  --border
+semantic/border/focus        →  --ring
+primitive/radius/md          →  --radius
+```
+
+---
+
+### Step 11.4: Customization Workflow (Complexity Level 3)
+
+**What you have:** shadcn/ui installed with default styling  
+**What you want:** Components that feel like YOUR brand
+
+**Step-by-step Process:**
+
+#### **1. Export Your Figma Tokens to CSS**
+
+From Phase 6, you should have:
+
+```css
+/* Your tokens.css */
+:root {
+  /* Your brand colors */
+  --color-brand-500: #3B82F6;
+  --color-brand-600: #2563EB;
+  
+  /* Your grays */
+  --color-gray-50: #F9FAFB;
+  --color-gray-900: #111827;
+  
+  /* Your semantic tokens */
+  --background-primary: var(--color-gray-50);
+  --text-primary: var(--color-gray-900);
+  --action-primary: var(--color-brand-600);
+  
+  /* Your spacing */
+  --spacing-md: 16px;
+  
+  /* Your radius */
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+```
+
+#### **2. Prompt LLM to Convert Your Tokens to shadcn Format**
+
+```
+I have these design tokens in CSS format: [paste your tokens.css]
+
+And I'm using shadcn/ui which expects tokens in this format: [paste shadcn default CSS]
+
+Task:
+1. Convert my hex colors to HSL format (shadcn requirement)
+2. Map my semantic tokens to shadcn's token names
+3. Preserve my brand colors, spacing, and radius values
+4. Ensure light and dark mode both work
+5. Output the complete CSS I should use
+
+My brand primary color is #3B82F6 (blue)
+My style preference: [modern/minimal/bold/playful]
+```
+
+#### **3. LLM Output Example:**
+
+```css
+/* Your customized shadcn tokens */
+:root {
+  /* Backgrounds - using your tokens */
+  --background: 210 20% 98%;           /* Your gray-50 in HSL */
+  --foreground: 222 84% 5%;            /* Your gray-900 in HSL */
+  
+  /* Cards - slightly different from background */
+  --card: 0 0% 100%;                   /* Pure white for elevation */
+  --card-foreground: 222 84% 5%;
+  
+  /* Primary actions - YOUR BRAND COLOR */
+  --primary: 217 91% 60%;              /* Your #3B82F6 in HSL */
+  --primary-foreground: 0 0% 100%;     /* White text */
+  
+  /* Secondary - more subtle */
+  --secondary: 210 40% 96%;            /* Light gray */
+  --secondary-foreground: 222 47% 11%;
+  
+  /* Muted states */
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  
+  /* Accent - using your brand */
+  --accent: 217 91% 60%;               /* Same as primary */
+  --accent-foreground: 0 0% 100%;
+  
+  /* Destructive - standard red */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  
+  /* Borders - adjusted to your style */
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;                 /* Focus ring uses brand color */
+  
+  /* Border radius - YOUR PREFERENCE */
+  --radius: 0.75rem;                   /* 12px - slightly more rounded than default */
+}
+
+.dark {
+  /* Dark mode - flipped */
+  --background: 222 47% 11%;           /* Your gray-900 */
+  --foreground: 210 40% 98%;           /* Your gray-50 */
+  
+  --card: 222 47% 11%;
+  --card-foreground: 210 40% 98%;
+  
+  /* Primary stays vibrant in dark mode */
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 217 33% 17%;
+  --secondary-foreground: 210 40% 98%;
+  
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 21% 65%;
+  
+  --accent: 217 33% 17%;
+  --accent-foreground: 210 40% 98%;
+  
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
+  --ring: 217 91% 60%;
+}
+
+/* Explanation of changes from default shadcn:
+1. Primary color changed from gray to your brand blue (#3B82F6)
+2. Radius increased from 8px to 12px (more friendly feel)
+3. Backgrounds use your specific gray values
+4. Focus ring uses brand color instead of gray
+5. Dark mode properly inverts while maintaining brand color prominence
+*/
+```
+
+#### **4. Apply and Test:**
+
+- Replace the CSS in your `globals.css` or `app.css`
+- Test all shadcn components you're using
+- Check both light and dark modes
+- Verify accessibility (contrast ratios)
+
+**Time saved:** 2-3 hours of manual HSL conversion and testing
+
+---
+
+### Step 11.5: Going Beyond Colors - Custom Component Styling
+
+**Making it REALLY yours (Complexity Level 4):**
+
+#### **Strategy 1: Adjust Proportions**
+
+**Default shadcn button proportions:**
+```css
+.button {
+  padding: 0.5rem 1rem;     /* 8px 16px */
+  font-size: 0.875rem;      /* 14px */
+  height: 2.5rem;           /* 40px */
+}
+```
+
+**Make it YOUR proportions:**
+
+1. **Prompt LLM:**
+```
+shadcn buttons are:
+- Height: 40px
+- Padding: 8px horizontal, 16px vertical
+- Font size: 14px
+
+I want buttons that feel more substantial/generous. 
+My design system uses:
+- Default spacing: 16px
+- Button text: 16px
+- Touch target: 44px minimum
+
+Generate new button proportions that:
+1. Meet 44px touch target
+2. Use my spacing scale
+3. Feel proportionally balanced
+4. Match my brand personality: [professional/friendly/bold]
+
+Output as CSS overrides for shadcn button classes.
+```
+
+2. **LLM Output:**
+```css
+/* Button proportion overrides */
+.button {
+  height: 2.75rem;                /* 44px - meets touch target */
+  padding: 0.75rem 1.25rem;       /* 12px 20px - more generous */
+  font-size: 1rem;                /* 16px - easier to read */
+  font-weight: 500;               /* Medium weight - more confident */
+  gap: 0.5rem;                    /* 8px between icon and text */
+}
+
+.button-sm {
+  height: 2rem;                   /* 32px */
+  padding: 0.5rem 0.875rem;       /* 8px 14px */
+  font-size: 0.875rem;            /* 14px */
+}
+
+.button-lg {
+  height: 3rem;                   /* 48px */
+  padding: 1rem 1.5rem;           /* 16px 24px */
+  font-size: 1.125rem;            /* 18px */
+}
+
+/* Rationale:
+- 44px meets WCAG touch target minimum
+- Padding follows your 4px/8px grid
+- Font size matches your type scale
+- Feels more substantial than shadcn default
+- Still proportionally balanced
+*/
+```
+
+#### **Strategy 2: Unique Visual Treatments**
+
+**Make components unmistakably YOURS:**
+
+**Prompt to LLM:**
+```
+Help me add unique visual treatments to shadcn components that differentiate from the default look.
+
+My brand personality: [modern and minimal / bold and confident / playful / etc.]
+
+Suggest modifications to:
+1. Button states (not just color changes)
+2. Input focus states (beyond ring)
+3. Card elevation/shadows
+4. Hover effects
+5. Loading states
+
+Keep it subtle but distinctive. Output as Tailwind/CSS code.
+```
+
+**LLM might suggest:**
+
+```css
+/* Subtle brand differentiation */
+
+/* Buttons - add subtle animation */
+.button {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
+}
+
+.button:hover {
+  transform: translateY(-1px);      /* Subtle lift */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Inputs - add brand accent on focus */
+.input:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);  /* Glow effect */
+}
+
+/* Cards - add brand accent bar */
+.card {
+  border-left: 3px solid hsl(var(--primary) / 0.2);
+}
+
+.card:hover {
+  border-left-color: hsl(var(--primary));
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Tooltips - brand-colored */
+.tooltip {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+```
+
+---
+
+### Step 11.6: Sync with Figma (Complexity Level 5)
+
+**Goal:** Keep Figma and shadcn in sync
+
+#### **Workflow:**
+
+1. **In Figma:** Design your components using your token system
+   - Example: Button component with your brand colors, spacing, radius
+
+2. **Export Figma tokens** to JSON (Phase 4)
+
+3. **Prompt LLM:**
+```
+I have design tokens from Figma: [paste DTCG JSON]
+
+And I'm using shadcn/ui components.
+
+Generate:
+1. CSS variables mapping Figma tokens to shadcn format
+2. Component-specific overrides where Figma differs from shadcn defaults
+3. A script to automate this conversion (if tokens change)
+
+Output as:
+- Complete CSS file
+- Documentation explaining mappings
+- Optional: Node.js script for automation
+```
+
+4. **LLM Output:**
+```css
+/* Auto-generated from Figma tokens */
+/* DO NOT EDIT MANUALLY - regenerate from tokens */
+
+:root {
+  /* Mapped from Figma variable: semantic/action/primary */
+  --primary: 217 91% 60%;
+  
+  /* Mapped from Figma variable: semantic/background/primary */
+  --background: 210 20% 98%;
+  
+  /* Mapped from Figma variable: primitive/radius/md */
+  --radius: 0.5rem;
+  
+  /* ... (complete mapping) ... */
+}
+
+/* Component overrides to match Figma specs */
+.button {
+  /* Figma component: Button/Primary */
+  height: 2.75rem;              /* From Figma component height */
+  padding: 0.75rem 1.25rem;     /* From Figma padding */
+  font-size: 1rem;              /* From Figma text layer */
+  border-radius: 0.75rem;       /* From Figma radius variable */
+}
+```
+
+Plus optional automation script:
+```javascript
+// figma-to-shadcn.js
+const figmaTokens = require('./tokens.json');
+
+function hexToHSL(hex) {
+  // Convert hex to HSL (shadcn format)
+  // ... conversion logic ...
+}
+
+function generateShadcnCSS(tokens) {
+  // Map Figma tokens to shadcn variables
+  // ... mapping logic ...
+}
+
+// Usage: node figma-to-shadcn.js
+// Outputs: shadcn-tokens.css
+```
+
+---
+
+### Step 11.7: Common Customizations Checklist
+
+**Quick wins to make shadcn YOUR brand:**
+
+- [ ] Change `--primary` to your brand color (HSL format)
+- [ ] Adjust `--radius` to match your border radius preference
+- [ ] Customize button heights to meet your touch targets
+- [ ] Add your brand font family to Tailwind config
+- [ ] Modify shadows to match your elevation system
+- [ ] Add subtle animations/transitions (if appropriate for brand)
+- [ ] Customize input focus states (color + effect)
+- [ ] Adjust spacing within components (padding/gaps)
+- [ ] Ensure dark mode uses your dark theme colors
+- [ ] Test WCAG compliance with your colors
+
+**Testing your customizations:**
+
+1. Create a test page with all shadcn components you're using
+2. Toggle light/dark mode - verify both look good
+3. Test keyboard navigation - focus states clear?
+4. Check on different screen sizes
+5. Run accessibility audit (Lighthouse, axe DevTools)
+6. Compare side-by-side with default shadcn - distinct enough?
+
+---
+
+### Step 11.8: When to Abandon shadcn
+
+**shadcn is great for:**
+✅ Standard UI patterns (buttons, inputs, dialogs)  
+✅ Need accessibility out-of-the-box  
+✅ Want to move fast  
+✅ Team comfortable with Tailwind  
+
+**Consider building custom when:**
+❌ Your components are highly unique (not standard patterns)  
+❌ Your design system is radically different from shadcn structure  
+❌ You need different component APIs  
+❌ Your brand requires specific interactions shadcn doesn't support  
+
+**Hybrid approach:**
+✅ Use shadcn for boring stuff (inputs, selects, dialogs)  
+✅ Build custom for hero components (unique interactions)  
+✅ Maintain consistency through shared CSS variables  
+
+---
+
+### **Quick tip:** Don't customize everything on day one. Start with colors and radius, ship, then gradually refine proportions and interactions based on user feedback. Perfect is the enemy of shipped.
+
+---
+
+## Quick Reference Checklist
+
+### Starting a New Design System
+
+- [ ] Complete visual design audit
+- [ ] Create primitive color, spacing, typography scales
+- [ ] Set up variable collections (Colors, Spacing, Typography)
+- [ ] Create semantic token layer
+- [ ] Build core components (atoms)
+- [ ] Connect variables to components
+- [ ] Document component usage
+- [ ] Export tokens to DTCG JSON
+- [ ] Set up Code Connect
+- [ ] Configure MCP server
+- [ ] Generate CSS variables
+- [ ] Create LLM context documentation
+- [ ] Add custom AI guidelines
+- [ ] Test with LLM generation
+- [ ] Set up automation/CI
+
+### For Existing Design Systems
+
+- [ ] Audit current token structure
+- [ ] Migrate to DTCG format (native support available)
+- [ ] Add Slots to flexible components
+- [ ] Connect to GitHub via Code Connect UI
+- [ ] Configure MCP server with guidelines
+- [ ] Update CSS to use variables
+- [ ] Create LLM-friendly documentation
+- [ ] Test LLM integration
+- [ ] Set up sync automation
+
+---
+
+## Resources
+
+### Official Documentation
+- [Figma Design Systems Docs](https://help.figma.com/hc/en-us/categories/360002051613-Design-Systems)
+- [Figma Variables Guide](https://help.figma.com/hc/en-us/articles/15339657135383-Guide-to-variables-in-Figma)
+- [Figma MCP Server Docs](https://developers.figma.com/docs/figma-mcp-server/)
+- [Code Connect Guide](https://developers.figma.com/docs/code-connect/)
+- [DTCG Specification](https://tr.designtokens.org/format/)
+
+### Tools
+- [Figma MCP Client Catalog](https://www.figma.com/mcp-catalog/)
+- [Design Tokens Plugin](https://www.figma.com/community/plugin/888356646278934516/Design-Tokens)
+- [Style Dictionary](https://amzn.github.io/style-dictionary/)
+
+### Community
+- [Figma Community](https://www.figma.com/community)
+- [Design Tokens W3C Group](https://www.w3.org/community/design-tokens/)
+
+---
+
+## Starting with shadcn/ui and Customizing
+
+**What is shadcn/ui?**
+shadcn/ui is a collection of beautifully designed, accessible components built with Radix UI and Tailwind CSS. Unlike traditional component libraries, you don't install it as a dependency—you copy the source code directly into your project and own it.
+
+**Why Start Here?**
+- ✅ Pre-built accessible components (WCAG AA compliant)
+- ✅ Full source code control (modify anything)
+- ✅ Built on Tailwind (easy to customize)
+- ✅ Production-ready patterns
+- ✅ Saves weeks of component development
+
+**The Problem:** shadcn/ui looks generic out of the box. Everyone using it has the same visual style.
+
+**The Solution:** Use your Figma design system to customize shadcn/ui to match your brand perfectly.
+
+---
+
+### The Workflow: Figma → shadcn/ui Customization
+
+**Process Overview:**
+1. Install shadcn/ui with default components
+2. Extract your Figma design tokens
+3. Map your tokens to Tailwind config
+4. Customize shadcn component styles
+5. Add brand-specific variations
+6. Document your customizations
+
+---
+
+### Step 1: Install shadcn/ui Baseline
+
+**Prerequisites:**
+- Next.js, Vite, or any React project
+- Tailwind CSS installed
+
+**Installation:**
+
+```bash
+# Initialize shadcn/ui
+npx shadcn-ui@latest init
+
+# Answer the prompts:
+# - TypeScript: Yes
+# - Style: Default
+# - Base color: Slate (we'll customize this)
+# - CSS variables: Yes (IMPORTANT: This enables easy theming)
+```
+
+**What this creates:**
+```
+your-project/
+├── components/
+│   └── ui/           ← shadcn components go here
+├── lib/
+│   └── utils.ts      ← Utility functions
+└── tailwind.config.js ← Tailwind configuration
+```
+
+**Install a few components to start:**
+```bash
+npx shadcn-ui@latest add button
+npx shadcn-ui@latest add input
+npx shadcn-ui@latest add card
+npx shadcn-ui@latest add badge
+```
+
+**Test the default look:**
+```tsx
+import { Button } from "@/components/ui/button"
+
+export default function Page() {
+  return (
+    <div className="p-8">
+      <Button>Default Button</Button>
+      <Button variant="secondary">Secondary</Button>
+      <Button variant="outline">Outline</Button>
+    </div>
+  )
+}
+```
+
+At this point, your components look like everyone else's shadcn/ui. Let's customize them.
+
+---
+
+### Step 2: Export Design Tokens from Figma
+
+**From your Figma design system:**
+
+1. **Export Variables as DTCG JSON**
+   - File → Variables → Export variables
+   - Save as `design-tokens.json`
+
+2. **Your exported file will look like:**
+```json
+{
+  "primitive": {
+    "color": {
+      "blue": {
+        "50": { "$value": "#EFF6FF", "$type": "color" },
+        "500": { "$value": "#3B82F6", "$type": "color" },
+        "900": { "$value": "#1E3A8A", "$type": "color" }
+      },
+      "gray": {
+        "50": { "$value": "#F9FAFB", "$type": "color" },
+        "900": { "$value": "#111827", "$type": "color" }
+      }
+    }
+  },
+  "semantic": {
+    "action": {
+      "primary": { "$value": "{primitive.color.blue.500}" }
+    }
+  }
+}
+```
+
+---
+
+### Step 3: Map Tokens to Tailwind Config
+
+**shadcn/ui uses CSS variables for theming.** You need to map your Figma tokens to these CSS variables.
+
+**Understanding shadcn's Token Structure:**
+
+shadcn/ui uses HSL (Hue, Saturation, Lightness) format for easy manipulation:
+
+```css
+/* Default shadcn variables */
+:root {
+  --background: 0 0% 100%;        /* White */
+  --foreground: 222.2 84% 4.9%;   /* Almost black */
+  --primary: 222.2 47.4% 11.2%;   /* Default blue */
+  --primary-foreground: 210 40% 98%; /* White text on primary */
+  --secondary: 210 40% 96.1%;     /* Light gray */
+  --secondary-foreground: 222.2 47.4% 11.2%; /* Dark text */
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;         /* Focus ring */
+  --radius: 0.5rem;               /* Border radius */
+  /* ... more variables */
+}
+```
+
+**Convert Your Hex Colors to HSL:**
+
+Use a conversion script or online tool:
+
+```javascript
+// convert-tokens.js
+function hexToHSL(hex) {
+  // Remove #
+  hex = hex.replace('#', '');
+  
+  // Convert to RGB
+  let r = parseInt(hex.substr(0, 2), 16) / 255;
+  let g = parseInt(hex.substr(2, 2), 16) / 255;
+  let b = parseInt(hex.substr(4, 2), 16) / 255;
+  
+  // Find min/max
+  let max = Math.max(r, g, b);
+  let min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  
+  if (max === min) {
+    h = s = 0; // achromatic
+  } else {
+    let d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    
+    h /= 6;
+  }
+  
+  h = Math.round(h * 360);
+  s = Math.round(s * 100);
+  l = Math.round(l * 100);
+  
+  return `${h} ${s}% ${l}%`;
+}
+
+// Example: Convert your brand blue
+console.log(hexToHSL('#3B82F6')); // Output: "217 91% 60%"
+```
+
+**Map Your Figma Tokens to shadcn Variables:**
+
+```css
+/* app/globals.css */
+
+@layer base {
+  :root {
+    /* Your Brand Colors (from Figma) */
+    --background: 0 0% 100%;                    /* white - Figma: primitive/color/gray/50 */
+    --foreground: 222 47% 11%;                  /* dark text - Figma: primitive/color/gray/900 */
+    
+    --primary: 217 91% 60%;                     /* YOUR brand blue - Figma: primitive/color/blue/500 */
+    --primary-foreground: 0 0% 100%;            /* white text on blue */
+    
+    --secondary: 214 32% 91%;                   /* light gray - Figma: primitive/color/gray/100 */
+    --secondary-foreground: 222 47% 11%;        /* dark text */
+    
+    --muted: 210 40% 96%;                       /* very light gray - Figma: primitive/color/gray/50 */
+    --muted-foreground: 215 16% 47%;            /* medium gray text */
+    
+    --accent: 217 91% 60%;                      /* same as primary, or different accent */
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;                   /* red - Figma: primitive/color/red/500 */
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 142 76% 36%;                     /* green - Figma: primitive/color/green/600 */
+    --warning: 38 92% 50%;                      /* orange - Figma: primitive/color/yellow/500 */
+    
+    --border: 214 32% 91%;                      /* Figma: semantic/border/default */
+    --input: 214 32% 91%;                       /* same as border */
+    --ring: 217 91% 60%;                        /* focus ring - use primary */
+    
+    --radius: 0.5rem;                           /* 8px - Figma: primitive/radius/md */
+  }
+
+  .dark {
+    /* Dark Mode (from your Figma dark mode variables) */
+    --background: 222 47% 11%;                  /* dark background */
+    --foreground: 210 40% 98%;                  /* light text */
+    
+    --primary: 217 91% 60%;                     /* primary stays same or slightly lighter */
+    --primary-foreground: 222 47% 11%;          /* dark text on primary */
+    
+    --secondary: 217 33% 17%;                   /* dark gray */
+    --secondary-foreground: 210 40% 98%;
+    
+    /* ... map all your dark mode tokens */
+  }
+}
+```
+
+**Tailwind Config Extension:**
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        // shadcn uses these automatically
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        // Add custom colors from your Figma system
+        brand: {
+          50: '#EFF6FF',   // Your primitive/color/blue/50
+          100: '#DBEAFE',
+          500: '#3B82F6',  // Your primary
+          900: '#1E3A8A',
+        }
+      },
+      borderRadius: {
+        lg: "var(--radius)",              // 8px
+        md: "calc(var(--radius) - 2px)",  // 6px
+        sm: "calc(var(--radius) - 4px)",  // 4px
+      },
+      // Add your Figma spacing scale
+      spacing: {
+        'xs': '4px',     // primitive/spacing/xs
+        'sm': '8px',     // primitive/spacing/sm
+        'md': '16px',    // primitive/spacing/md
+        'lg': '24px',    // primitive/spacing/lg
+        'xl': '32px',    // primitive/spacing/xl
+        '2xl': '48px',
+        '3xl': '64px',
+      },
+      // Add your typography scale
+      fontSize: {
+        'xs': ['12px', { lineHeight: '1.5' }],
+        'sm': ['14px', { lineHeight: '1.5' }],
+        'base': ['16px', { lineHeight: '1.5' }],
+        'lg': ['18px', { lineHeight: '1.5' }],
+        'xl': ['20px', { lineHeight: '1.5' }],
+        '2xl': ['24px', { lineHeight: '1.3' }],
+        '3xl': ['30px', { lineHeight: '1.2' }],
+      }
+    }
+  }
+}
+```
+
+---
+
+### Step 4: Customize shadcn Component Styles
+
+**The beauty of shadcn:** You own the source code. You can modify any component.
+
+**Example: Customizing the Button Component**
+
+**Default shadcn button** (`components/ui/button.tsx`):
+
+```tsx
+// Before customization
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+```
+
+**Customize to match your Figma design:**
+
+```tsx
+// After customization - matches your Figma button specs
+const buttonVariants = cva(
+  // Base styles - adjusted to your design
+  "inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+  {
+    variants: {
+      variant: {
+        // Adjusted to match your Figma button tokens
+        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md",
+        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline: "border-2 border-input bg-background hover:bg-secondary hover:border-primary/50",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-secondary/50 hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
+      },
+      size: {
+        // Adjusted to match your Figma spacing tokens
+        sm: "h-8 px-3 text-xs",       // 32px height - Figma: component/button/height/sm
+        default: "h-10 px-4 py-2",    // 40px height - Figma: component/button/height/md
+        lg: "h-12 px-6 text-base",    // 48px height - Figma: component/button/height/lg
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+```
+
+**Key customizations made:**
+- Changed `rounded-md` to `rounded-lg` (matches your 12px radius)
+- Changed font weight to `font-semibold` (600 from Figma)
+- Added `shadow-sm` for subtle elevation
+- Added `hover:shadow-md` for lift effect on hover
+- Added `active:scale-[0.98]` for press feedback
+- Changed outline border from `border` to `border-2` (stronger)
+- Adjusted height and padding to match Figma tokens
+- Changed transition timing
+
+---
+
+### Step 5: Add Brand-Specific Variations
+
+**Create Custom Variants Beyond shadcn Defaults**
+
+Based on your Figma design system, you might need additional button variants:
+
+```tsx
+const buttonVariants = cva(
+  // ... base styles
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground ...",
+        // ... existing variants
+        
+        // NEW: Your custom variants from Figma
+        brand: "bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-lg hover:shadow-xl hover:from-brand-600 hover:to-brand-700",
+        success: "bg-success text-white hover:bg-success/90",
+        warning: "bg-warning text-white hover:bg-warning/90",
+        soft: "bg-primary/10 text-primary hover:bg-primary/20",
+      },
+      size: {
+        // ... existing sizes
+        xs: "h-6 px-2 text-xs",           // Extra small from Figma
+        xl: "h-14 px-8 text-lg",          // Extra large from Figma
+      },
+      // NEW: Add a shape variant (from your Figma components)
+      shape: {
+        default: "rounded-lg",
+        square: "rounded-md",
+        pill: "rounded-full",
+      }
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+      shape: "default",
+    },
+  }
+)
+
+// Update the component props type
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+// Now you can use:
+<Button variant="brand" size="xl" shape="pill">Brand Button</Button>
+```
+
+---
+
+### Step 6: Systematically Customize All Components
+
+**Repeat for each shadcn component:**
+
+**Input Component** (`components/ui/input.tsx`):
+
+```tsx
+// Customize to match Figma input tokens
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          // Before: Generic shadcn styles
+          // "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          
+          // After: Match your Figma input specs
+          "flex h-10 w-full rounded-lg border-2 border-input bg-background px-4 py-2 text-base transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+```
+
+**Changes:**
+- `rounded-md` → `rounded-lg` (12px from Figma)
+- `border` → `border-2` (2px from Figma)
+- `px-3` → `px-4` (16px padding from Figma)
+- `text-sm` → `text-base` (16px from Figma)
+- Added `hover:border-primary/50` (hover state from Figma)
+- Changed focus ring to `ring-primary/20` (lighter focus ring)
+- Added `disabled:bg-muted` (disabled background from Figma)
+
+**Card Component** (`components/ui/card.tsx`):
+
+```tsx
+// Customize to match Figma card tokens
+const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        // Before: "rounded-lg border bg-card text-card-foreground shadow-sm"
+        
+        // After: Match Figma card specs
+        "rounded-xl border-2 border-border bg-card p-6 text-card-foreground shadow-md hover:shadow-lg transition-shadow",
+        className
+      )}
+      {...props}
+    />
+  )
+)
+```
+
+---
+
+### Step 7: Create a Design System Documentation Page
+
+**Document your customizations** so your team knows what's different from default shadcn:
+
+```tsx
+// app/design-system/page.tsx
+export default function DesignSystemPage() {
+  return (
+    <div className="container mx-auto py-12 space-y-12">
+      <section>
+        <h1 className="text-4xl font-bold mb-4">Our Design System</h1>
+        <p className="text-muted-foreground">
+          Built on shadcn/ui, customized to match our Figma design system.
+        </p>
+      </section>
+
+      {/* Colors */}
+      <section>
+        <h2 className="text-2xl font-bold mb-4">Colors</h2>
+        <div className="grid grid-cols-5 gap-4">
+          <div className="space-y-2">
+            <div className="h-24 bg-primary rounded-lg" />
+            <p className="text-sm font-medium">Primary</p>
+            <p className="text-xs text-muted-foreground">--primary</p>
+          </div>
+          <div className="space-y-2">
+            <div className="h-24 bg-secondary rounded-lg" />
+            <p className="text-sm font-medium">Secondary</p>
+            <p className="text-xs text-muted-foreground">--secondary</p>
+          </div>
+          {/* ... more colors */}
+        </div>
+      </section>
+
+      {/* Buttons */}
+      <section>
+        <h2 className="text-2xl font-bold mb-4">Buttons</h2>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Variants</h3>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="default">Default</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="outline">Outline</Button>
+              <Button variant="ghost">Ghost</Button>
+              <Button variant="brand">Brand</Button>
+              <Button variant="success">Success</Button>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Sizes</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="xs">Extra Small</Button>
+              <Button size="sm">Small</Button>
+              <Button size="default">Default</Button>
+              <Button size="lg">Large</Button>
+              <Button size="xl">Extra Large</Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ... more components */}
+    </div>
+  )
+}
+```
+
+---
+
+### Step 8: Advanced Customization Techniques
+
+#### **Technique 1: Component Composition**
+
+Create compound components that match your Figma patterns:
+
+```tsx
+// components/ui/feature-card.tsx
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+
+// This exact pattern exists in your Figma
+export function FeatureCard({ 
+  title, 
+  description, 
+  category,
+  cta,
+  ...props 
+}: FeatureCardProps) {
+  return (
+    <Card className="group hover:border-primary/50 transition-all" {...props}>
+      <CardHeader>
+        <Badge variant="secondary" className="w-fit mb-2">{category}</Badge>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button variant="outline" className="w-full group-hover:border-primary">
+          {cta}
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Usage matches your Figma component
+<FeatureCard 
+  title="Advanced Analytics"
+  description="Track user behavior with detailed insights"
+  category="Premium"
+  cta="Learn More"
+/>
+```
+
+#### **Technique 2: CSS Variable Overrides for Specific Sections**
+
+```tsx
+// Different section, custom color override
+<section 
+  className="healthcare-section"
+  style={{
+    '--primary': '142 76% 36%',        // Green instead of blue
+    '--primary-foreground': '0 0% 100%',
+  } as React.CSSProperties}
+>
+  <Button>Healthcare Button</Button>  {/* Will be green! */}
+</section>
+```
+
+#### **Technique 3: Animation Matching Figma Prototypes**
+
+Add custom animations that match your Figma prototype timings:
+
+```css
+/* globals.css */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+```
+
+```tsx
+// Match your Figma modal animation
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+
+<DialogContent className="animate-slide-in">
+  {/* ... */}
+</DialogContent>
+```
+
+---
+
+### Step 9: Using AI to Speed Up Customization
+
+**Use LLM to generate custom shadcn variants:**
+
+```
+I need to customize a shadcn/ui Button component to match my Figma design.
+
+Figma Button Specs:
+- Border radius: 12px (rounded-xl)
+- Font weight: 600 (semibold)
+- Height (default): 44px
+- Padding X: 24px
+- Has subtle shadow on hover
+- Has scale animation on press
+- Primary color: #3B82F6 (already in CSS vars as --primary)
+
+Current shadcn button:
+[Paste current button code]
+
+Generate the customized buttonVariants cva configuration.
+```
+
+**LLM generates:**
+
+```tsx
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:shadow-md",
+        // ... rest generated
+      },
+      size: {
+        default: "h-11 px-6",  // 44px height, 24px padding
+        // ... rest generated
+      }
+    }
+  }
+)
+```
+
+---
+
+### Step 10: Maintaining Sync Between Figma and Code
+
+**Workflow for keeping them in sync:**
+
+1. **Design tokens are source of truth**
+   - Update Figma variables
+   - Export to JSON
+   - Run conversion script
+   - Update CSS variables
+
+2. **Component changes**
+   - Update Figma component
+   - Screenshot new specs
+   - Ask LLM to update shadcn component
+   - Test and deploy
+
+3. **Automation script:**
+
+```bash
+#!/bin/bash
+# sync-design-tokens.sh
+
+echo "Syncing design tokens from Figma..."
+
+# 1. Export tokens from Figma (via API or manual)
+# 2. Convert DTCG JSON to CSS variables
+node scripts/tokens-to-css.js
+
+# 3. Update Tailwind config
+node scripts/tokens-to-tailwind.js
+
+# 4. Regenerate TypeScript types
+npm run generate-types
+
+echo "✓ Design tokens synced!"
+```
+
+---
+
+## Comparison: Generic vs. Branded
+
+**Before Customization (Generic shadcn):**
+```tsx
+<Button>Click Me</Button>
+```
+- Looks like every other shadcn site
+- Default slate colors
+- Standard 6px border radius
+- Basic hover state
+
+**After Customization (Your Brand):**
+```tsx
+<Button>Click Me</Button>
+```
+- Uses YOUR brand blue (#3B82F6)
+- YOUR border radius (12px)
+- YOUR font weight (600)
+- YOUR hover effects (shadow + lift)
+- YOUR spacing (from Figma tokens)
+- Matches Figma designs perfectly
+
+**The Power:** Same component API, completely different visual identity.
+
+---
+
+## Quick Reference: Customization Checklist
+
+- [ ] Install shadcn/ui with CSS variables enabled
+- [ ] Export design tokens from Figma as DTCG JSON
+- [ ] Convert hex colors to HSL format
+- [ ] Map tokens to CSS variables in globals.css
+- [ ] Update Tailwind config with your scales
+- [ ] Customize Button component styles
+- [ ] Customize Input component styles
+- [ ] Customize Card component styles
+- [ ] Add custom variants for brand-specific needs
+- [ ] Create compound components for Figma patterns
+- [ ] Document your customizations
+- [ ] Set up sync workflow
+- [ ] Test light/dark mode
+- [ ] Test all component states
+- [ ] Deploy and monitor
+
+---
+
+**Key Takeaway:** shadcn/ui gives you a production-ready foundation. Your Figma design system gives you brand identity. Combining them gives you the best of both worlds: speed + uniqueness.
+
+---
+
+## Conclusion
+
+This workflow combines Figma's latest features with LLM integration to create a design system that:
+
+1. **Scales:** Variable collections that grow with your product
+2. **Flexes:** Slots for dynamic components
+3. **Connects:** Code Connect + MCP for design-to-code
+4. **Validates:** Check designs + AI guidelines
+5. **Performs:** 30-60% faster variable operations
+6. **Standards-based:** DTCG 1.0 compliance
+
+The key is establishing a clear token hierarchy, using Figma's native features for structure and export, connecting via MCP for LLM context, and using specific prompts to maintain design system compliance when generating code or designs.
+
+Start small, scale up, and let automation handle synchronization between design and code.
